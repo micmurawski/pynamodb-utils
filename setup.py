@@ -1,8 +1,22 @@
 from setuptools import find_packages, setup
+import os.path
+
+HERE = os.path.abspath(os.path.dirname(__file__))
+
+
+def read(*parts):
+    return codecs.open(os.path.join(HERE, *parts), 'r').read()
+
 
 setup(
     name='pynamodb_utils',
     version='0.0.1',
+    author="Michal Murawski",
+    author_email="mmurawski777@gmail.com",
+    description="Utilities package for pynamodb.",
+    long_description=read('README.md'),
+    long_description_content_type="text/markdown",
+    url="https://github.com/micmurawski/pynamodb-utils/",
     packages=find_packages(exclude=(
         'build',
         'tests',
@@ -12,4 +26,5 @@ setup(
         'pynamodb>=5.0.0'
     ],
     include_package_data=True,
+    python_requires='>=3.6',
 )

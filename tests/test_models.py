@@ -19,9 +19,9 @@ def test_fm_resource_model_create(resource_model):
     assert obj.map.key == 'value'
     assert obj.as_dict() == {
         'ID': '1',
-        'CreatedAt': '2019-01-01 00:00:00+00:00',
-        'DeletedAt': None,
-        'UpdatedAt': '2019-01-01 00:00:00+00:00',
+        'created_at': '2019-01-01 00:00:00+00:00',
+        'deleted_at': None,
+        'updated_at': '2019-01-01 00:00:00+00:00',
         'enum': 'A',
         'map': {
             'key': 'value'

@@ -13,20 +13,20 @@ class JSONQueryModel(Model):
         return QuerySerializer().load(model=cls, data=query)
 
 
-class AsDicteModel(Model):
+class AsDictModel(Model):
 
     def as_dict(self):
         return parse_attrs_to_dict(self)
 
 
 class TimestampedModel(Model):
-    CreatedAt = UTCDateTimeAttribute(default=get_timestamp)
-    UpdatedAt = UTCDateTimeAttribute(default=get_timestamp)
-    DeletedAt = UTCDateTimeAttribute(null=True)
+    created_at = UTCDateTimeAttribute(default=get_timestamp)
+    updated_at = UTCDateTimeAttribute(default=get_timestamp)
+    deleted_at = UTCDateTimeAttribute(null=True)
 
     def save(self, condition=None):
         tz_info = getattr(self.Meta, "TZINFO", None)
-        self.UpdatedAt = get_timestamp(tzinfo=tz_info)
+        self.updated_at = get_timestamp(tzinfo=tz_info)
         super().save(condition=condition)
 
     def save_without_timestamp_update(self, condition=None):
@@ -34,5 +34,5 @@ class TimestampedModel(Model):
 
     def soft_delete(self, condition=None):
         tz_info = getattr(self.Meta, "TZINFO", None)
-        self.DeletedAt = get_timestamp(tz_info)
+        self.deleted_at = get_timestamp(tz_info)
         super().save(condition=condition)

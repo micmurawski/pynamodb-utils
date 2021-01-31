@@ -20,9 +20,9 @@ def dynamodb():
 
 @pytest.fixture
 def resource_model(dynamodb):
-    from pynamodb_utils.models import AsDicteModel, JSONQueryModel, TimestampedModel
+    from pynamodb_utils.models import AsDictModel, JSONQueryModel, TimestampedModel
 
-    class ResourceModel(JSONQueryModel, AsDicteModel, TimestampedModel):
+    class ResourceModel(JSONQueryModel, AsDictModel, TimestampedModel):
         ID = UnicodeAttribute(hash_key=True)
         map = DynamicMapAttribute()
         enum = EnumAttribute(enum=ExampleEnum)
