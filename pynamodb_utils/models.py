@@ -1,6 +1,4 @@
-from copy import deepcopy
-
-from pynamodb.attributes import JSONAttribute, UnicodeAttribute, UTCDateTimeAttribute
+from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.models import Model
 
 from pynamodb_utils.query_serializer import QuerySerializer
@@ -9,10 +7,10 @@ from .utils import get_timestamp, parse_attrs_to_dict
 
 
 class JSONQueryModel(Model):
-    
+
     @classmethod
-    def get_conditions_from_json(cls, query:dict):
-        return QuerySerializer.load(model=cls, data=query)
+    def get_conditions_from_json(cls, query: dict):
+        return QuerySerializer().load(model=cls, data=query)
 
 
 class AsDicteModel(Model):

@@ -8,4 +8,3 @@ class FilterError(Exception):
         if status_code is not None:
             self.status_code = status_code
         super().__init__(self.message, self.status_code)
-

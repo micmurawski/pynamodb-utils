@@ -8,10 +8,8 @@ setup(
         'tests',
     )),
     install_requires=[
-        'marshmallow==3.3.0',
-        'pynamodb==4.3.2',
-        'boto3==1.12.5',
-        'Flask==1.1.1'
+        'marshmallow>=3.10.0',
+        'pynamodb>=5.0.0'
     ],
     include_package_data=True,
 )

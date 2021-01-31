@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from pynamodb.attributes import MapAttribute
 
@@ -39,7 +39,5 @@ def get_nested_attribute(model, attr_string, raise_exception=True):
     return result
 
 
-
 def get_timestamp(tzinfo=None):
     return datetime.now(tzinfo or timezone.utc)
-    

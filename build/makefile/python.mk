@@ -29,18 +29,7 @@ distclean: python_distclean
 python_test: $(PYTHON_VENV) install_dependencies tests/requirements.txt
 	$(call in_venv,$(PIP) install --no-cache --requirement tests/requirements.txt)
 	$(call in_venv,$(PYTEST) --cov-config pytest.ini --cov=$(COV) \
-		-W ignore:::localstack.services.generic_proxy \
 		-s tests \
-	)
-
-.PHONY: python_test_integration
-python_test_integration: terraform_state
-python_test_integration: export ENDPOINT=$(shell cat $(TERRAFORM_STATE_CACHE) | jq -r '.service_url.value')
-python_test_integration: $(PYTHON_VENV)
-	$(call in_venv,$(PIP) install --no-cache --requirement smoke/requirements.txt)
-	$(call in_venv,$(PYTEST)  \
-		-vv -s smoke \
-		--junitxml=tests_results.xml \
 	)
 
 .PHONY: python_venv
