@@ -8,9 +8,9 @@ Pynamodb Utils is a collection of small helper functions, utilities and classes 
  - Attributes for enums and dynamic mappings
  - Class with methods that allow to generate from JSON/dict query/scan conditions
 
- ## To install:
+## To install:
 
- 1. Run ``pip install pynamodb-utils or execute ``python setup.py install`` in the source directory
+ 1. Run ``pip install pynamodb-utils`` or execute ``python setup.py install`` in the source directory
  2. Add ``pynamodb_utils`` to your ``INSTALLED_APPS``
 
 ## Example of Usage
