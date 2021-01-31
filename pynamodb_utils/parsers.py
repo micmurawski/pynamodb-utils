@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union
+from typing import Dict, List, Union
 
 from pynamodb import attributes
 from pynamodb.expressions.operand import Path
@@ -9,7 +9,7 @@ from pynamodb_utils.attributes import EnumAttribute
 from .exceptions import FilterError
 
 
-def parse_string_to_datetime(value, field_name, *args):
+def parse_string_to_datetime(value: str, field_name: str, *args):
     for fmt in DATETIME_FORMATS:
         try:
             return datetime.strptime(value, fmt)
@@ -36,37 +36,37 @@ def default_parser(value, *args):
     return value
 
 
-def default_list_parser(value, field_name, *args):
+def default_list_parser(value: List, field_name: str, *args):
     if isinstance(value, list):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_dict_parser(value, field_name, *args):
+def default_dict_parser(value: Dict, field_name: str, *args):
     if isinstance(value, dict):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_bool_parser(value, field_name, *args):
+def default_bool_parser(value: bool, field_name: str, *args):
     if isinstance(value, bool):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_str_parser(value, field_name, *args):
+def default_str_parser(value, field_name: str, *args):
     if isinstance(value, str):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_number_parser(value: Union[float, int], field_name, *args):
+def default_number_parser(value: Union[float, int], field_name: str, *args):
     if isinstance(value, (float, int)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_enum_parser(value, field_name, model):
+def default_enum_parser(value, field_name: str, model):
     values = getattr(model, field_name).enum.__members__
 
     _value = set(value) if isinstance(value, list) else {value}
@@ -91,7 +91,7 @@ TYPE_MAPPING = {
 }
 
 
-def parse_value(model, field_name, value):
+def parse_value(model, field_name: str, value):
     attrs = field_name.split('.')
     if len(attrs) == 1:
         _type = type(getattr(model, field_name))
@@ -100,38 +100,38 @@ def parse_value(model, field_name, value):
         return TYPE_MAPPING[attributes.MapAttribute](value, field_name, model)
 
 
-def get_equals_condition(model, field_name, attr, value):
+def get_equals_condition(model, field_name: str, attr, value):
     return attr.__eq__(parse_value(model, field_name, value))
 
 
-def get_startswith_condition(model, field_name, attr, value):
+def get_startswith_condition(model, field_name: str, attr, value):
     return attr.startswith(value)
 
 
-def get_gt_condition(model, field_name, attr, value):
+def get_gt_condition(model, field_name: str, attr, value):
     return attr.__gt__(parse_value(model, field_name, value))
 
 
-def get_lt_condition(model, field_name, attr, value):
+def get_lt_condition(model, field_name: str, attr, value):
     return attr.__lt__(parse_value(model, field_name, value))
 
 
-def get_gte_condition(model, field_name, attr, value):
+def get_gte_condition(model, field_name: str, attr, value):
     return attr.__ge__(parse_value(model, field_name, value))
 
 
-def get_lte_condition(model, field_name, attr, value):
+def get_lte_condition(model, field_name: str, attr, value):
     return attr.__le__(parse_value(model, field_name, value))
 
 
-def get_contains_condition(model, field_name, attr, value):
+def get_contains_condition(model, field_name: str, attr, value):
     parsed_value = parse_value(model, field_name, value)
     if isinstance(parsed_value, list):
         return attr.contains(*parsed_value)
     return attr.contains(parsed_value)
 
 
-def get_is_in_condition(model, field_name, attr, value):
+def get_is_in_condition(model, field_name: str, attr, value):
     parsed_value = parse_value(model, field_name, value)
     if isinstance(parsed_value, list):
         return attr.is_in(*parsed_value)
