@@ -18,21 +18,22 @@ Pynamodb Utils is a collection of small helper functions, utilities and classes 
 To setup pynamodb models with authomaticly generated timestamps and useful functions allowing serialization of scan conditions from JSON input from API.
 
 ```python
-from datetime import timezone
-from pynamodb.attribiutes import UnicodeAttribiute
-from pynamodb_utils import DynamicMappingAttribiute, AsDictModel,
+from datetime import timezone, datetime
+from pynamodb.attributes import UnicodeAttribute
+from pynamodb_utils import DynamicMapAttribute, AsDictModel,
 JSONQueryModel, TimestampedModel
 
 
 class Post(AsDictModel, JSONQueryModel, TimestampedModel):
-    name = UnicodeAttribiute(hash_key=True)
-    content = UnicodeAttribiute()
-    tags = DynamicMappingAttribiute(default={})
+    name = UnicodeAttribute(hash_key=True)
+    content = UnicodeAttribute()
+    tags = DynamicMapAttribute(default={})
 
     class Meta:
         table_name = 'example-table-name'
         TZINFO = timezone.utc
 
+Post.create_table(read_capacity_units=10, write_capacity_units=10)
 
 post = Post(
     name='A weekly news.',
@@ -45,11 +46,12 @@ post = Post(
 post.save()
 
 condition = Post.get_conditions_from_json(query={
+    "created_at__lte": datetime.now(),
     "tags.type__equals": "news",
     "tags.topics__contains": ["NYSE"]
 })
 results = Post.scan(filter_condition=condition)
-print(next(result).as_dict())
+print(next(results).as_dict())
 ```
 That lines of code should result with following output
 

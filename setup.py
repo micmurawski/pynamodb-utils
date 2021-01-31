@@ -1,5 +1,7 @@
-from setuptools import find_packages, setup
+import codecs
 import os.path
+
+from setuptools import find_packages, setup
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -10,7 +12,7 @@ def read(*parts):
 
 setup(
     name='pynamodb_utils',
-    version='0.0.1',
+    version='1.0.0',
     author="Michal Murawski",
     author_email="mmurawski777@gmail.com",
     description="Utilities package for pynamodb.",
