@@ -46,7 +46,7 @@ post = Post(
 post.save()
 
 condition = Post.get_conditions_from_json(query={
-    "created_at__lte": datetime.now(),
+    "created_at__lte": str(datetime.now()),
     "tags.type__equals": "news",
     "tags.topics__contains": ["NYSE"]
 })
