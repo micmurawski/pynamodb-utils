@@ -3,9 +3,11 @@ from freezegun import freeze_time
 
 @freeze_time("2019-01-01 00:00:00+00:00")
 def test_general(dynamodb):
-    from datetime import timezone, datetime
+    from datetime import datetime, timezone
+
     from pynamodb.attributes import UnicodeAttribute
-    from pynamodb_utils import DynamicMapAttribute, AsDictModel, JSONQueryModel, TimestampedModel
+
+    from pynamodb_utils import AsDictModel, DynamicMapAttribute, JSONQueryModel, TimestampedModel
 
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
