@@ -31,42 +31,47 @@ DATETIME_FORMATS = [
     '%Y-%m-%d'
 ]
 
+NoneType = type(None)
+
 
 def default_parser(value, *args):
     return value
 
 
 def default_list_parser(value: List, field_name: str, *args):
-    if isinstance(value, list):
+    if isinstance(value, (list, NoneType)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_dict_parser(value: Dict, field_name: str, *args):
-    if isinstance(value, dict):
+    if isinstance(value, (dict, NoneType)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_bool_parser(value: bool, field_name: str, *args):
-    if isinstance(value, bool):
+    if isinstance(value, (bool, NoneType)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_str_parser(value, field_name: str, *args):
-    if isinstance(value, str):
+    if isinstance(value, (str, NoneType)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_number_parser(value: Union[float, int], field_name: str, *args):
-    if isinstance(value, (float, int)):
+    if isinstance(value, (float, int, NoneType)):
         return value
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_enum_parser(value, field_name: str, model):
+    if isinstance(value, NoneType):
+        return None
+    
     values = getattr(model, field_name).enum.__members__
 
     _value = set(value) if isinstance(value, list) else {value}
@@ -101,11 +106,14 @@ def parse_value(model, field_name: str, value):
 
 
 def get_equals_condition(model, field_name: str, attr, value):
-    return attr.__eq__(parse_value(model, field_name, value))
+    parsed_value = parse_value(model, field_name, value)
+    if parsed_value is None:
+        return attr.does_not_exist()
+    return attr.__eq__(parsed_value)
 
 
 def get_startswith_condition(model, field_name: str, attr, value):
-    return attr.startswith(value)
+    return attr.startswith(parse_value(model, field_name, value))
 
 
 def get_gt_condition(model, field_name: str, attr, value):

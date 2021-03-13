@@ -25,7 +25,7 @@ def create_model_filter(model: Type[Model], args, _operator=operator.and_, raise
                 status_code=400
             )
         nested_attr = get_nested_attribute(model, field_name, raise_exception)
-        if isinstance(nested_attr, (Attribute, Path)) and value is not None:
+        if isinstance(nested_attr, (Attribute, Path)):
             if 'not_' in operator_name:
                 operator_name = operator_name.replace('not_', '')
                 operator_handler = OPERATORS_MAPPING.get(operator_name)
