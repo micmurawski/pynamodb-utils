@@ -10,6 +10,7 @@ def test_general(dynamodb):
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
         content = UnicodeAttribute()
+        sub_name = UnicodeAttribute(null=True)
         tags = DynamicMapAttribute(default={})
 
         class Meta:
@@ -30,6 +31,7 @@ def test_general(dynamodb):
 
     condition = Post.get_conditions_from_json(query={
         "created_at__lte": str(datetime.now()),
+        "sub_name": None,
         "tags.type__equals": "news",
         "tags.topics__contains": ["NYSE"]
     })
@@ -40,6 +42,7 @@ def test_general(dynamodb):
         'created_at': '2019-01-01 00:00:00+00:00',
         'deleted_at': None,
         'name': 'A weekly news.',
+        "sub_name": None,
         'tags': {
             'type': 'news',
             'topics': ['stock exchange', 'NYSE']
