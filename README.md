@@ -70,3 +70,4 @@ That lines of code should result with following output
 ```
 
 ## Links
+* https://pypi.org/project/pynamodb-utils/
