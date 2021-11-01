@@ -71,7 +71,7 @@ def default_number_parser(value: Union[float, int], field_name: str, *args):
 def default_enum_parser(value, field_name: str, model):
     if isinstance(value, NoneType):
         return None
-    
+
     values = getattr(model, field_name).enum.__members__
 
     _value = set(value) if isinstance(value, list) else {value}

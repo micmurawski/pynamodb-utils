@@ -33,12 +33,11 @@ class DynamicMapAttribute(MapAttribute):
             return super(DynamicMapAttribute, self).deserialize(values)
 
         class_for_deserialize = self.element_type()
-        deserialized_dict = {}
-        for k in values:
-            v = values[k]
-            attr_value = _get_value_for_deserialize(v)
-            deserialized_dict[k] = class_for_deserialize.deserialize(attr_value)
-        return deserialized_dict
+        return {
+            k: class_for_deserialize.deserialize(attr_value)
+            for k, v in values.items()
+            for _, attr_value in v.items()
+        }
 
     @classmethod
     def is_raw(cls):
