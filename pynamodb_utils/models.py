@@ -30,7 +30,6 @@ class TimestampedModel(Model):
     updated_at = UTCDateTimeAttribute(default=get_timestamp)
     deleted_at = UTCDateTimeAttribute(null=True)
 
-
     class Meta:
         abstract = True
 

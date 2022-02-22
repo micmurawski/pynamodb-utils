@@ -64,7 +64,9 @@ class EnumAttribute(UnicodeAttribute):
         super().__init__(hash_key=hash_key, range_key=range_key, default=default, null=null, attr_name=attr_name)
 
     def serialize(self, value):
-        if isinstance(value, str):
+        if isinstance(value, self.enum):
+            return value.value
+        elif isinstance(value, str):
             if value in self.enum.__members__.keys():
                 return getattr(self.enum, value).value
         raise ValueError(f'{value} must be in {",".join([item for item in self.enum.__members__.keys()])}')

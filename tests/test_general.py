@@ -3,14 +3,20 @@ from freezegun import freeze_time
 
 @freeze_time("2019-01-01 00:00:00+00:00")
 def test_general(dynamodb):
+    import enum
     from datetime import datetime, timezone
 
     from pynamodb.attributes import UnicodeAttribute
 
-    from pynamodb_utils import AsDictModel, DynamicMapAttribute, JSONQueryModel, TimestampedModel
+    from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
+
+    class CategoryEnum(enum.Enum):
+        finance = enum.auto()
+        politics = enum.auto()
 
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
+        category = EnumAttribute(enum=CategoryEnum)
         content = UnicodeAttribute()
         sub_name = UnicodeAttribute(null=True)
         tags = DynamicMapAttribute(default={})
@@ -24,6 +30,7 @@ def test_general(dynamodb):
     post = Post(
         name='A weekly news.',
         content='Last week took place...',
+        category=CategoryEnum.finance,
         tags={
             "type": "news",
             "topics": ["stock exchange", "NYSE"]
@@ -34,6 +41,7 @@ def test_general(dynamodb):
     condition = Post.get_conditions_from_json(query={
         "created_at__lte": str(datetime.now()),
         "sub_name": None,
+        "category__equals": "finance",
         "tags.type__equals": "news",
         "tags.topics__contains": ["NYSE"]
     })
@@ -44,6 +52,7 @@ def test_general(dynamodb):
         'created_at': '2019-01-01 00:00:00+00:00',
         'deleted_at': None,
         'name': 'A weekly news.',
+        'category': 'finance',
         "sub_name": None,
         'tags': {
             'type': 'news',

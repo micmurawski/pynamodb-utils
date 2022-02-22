@@ -12,7 +12,7 @@ def read(*parts):
 
 setup(
     name='pynamodb_utils',
-    version='1.0.3',
+    version='1.0.4',
     author="Michal Murawski",
     author_email="mmurawski777@gmail.com",
     description="Utilities package for pynamodb.",
