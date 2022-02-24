@@ -6,9 +6,9 @@ from pynamodb.attributes import Attribute
 from pynamodb.expressions.operand import Path
 from pynamodb.models import Model
 
-from .exceptions import FilterError
-from .parsers import OPERATORS_MAPPING
-from .utils import get_nested_attribute
+from pynamodb_utils.exceptions import FilterError
+from pynamodb_utils.parsers import OPERATORS_MAPPING
+from pynamodb_utils.utils import get_nested_attribute
 
 
 def create_model_filter(model: Type[Model], args, _operator=operator.and_, raise_exception=True):

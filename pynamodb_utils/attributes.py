@@ -4,10 +4,6 @@ import six
 from pynamodb.attributes import MapAttribute, UnicodeAttribute
 
 
-def _get_value_for_deserialize(value):
-    return value
-
-
 class DynamicMapAttribute(MapAttribute):
     element_type = None
 
@@ -69,7 +65,8 @@ class EnumAttribute(UnicodeAttribute):
         elif isinstance(value, str):
             if value in self.enum.__members__.keys():
                 return getattr(self.enum, value).value
-        raise ValueError(f'{value} must be in {",".join([item for item in self.enum.__members__.keys()])}')
+        raise ValueError(
+            f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}')
 
     def deserialize(self, value):
         return self.enum(value).name

@@ -1,9 +1,11 @@
+from marshmallow.exceptions import ValidationError
 from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.models import Model
 
 from pynamodb_utils.query_serializer import QuerySerializer
 
-from .utils import get_timestamp, parse_attrs_to_dict
+from pynamodb_utils.exceptions import FilterError
+from pynamodb_utils.utils import get_timestamp, parse_attrs_to_dict
 
 
 class JSONQueryModel(Model):
@@ -13,7 +15,10 @@ class JSONQueryModel(Model):
 
     @classmethod
     def get_conditions_from_json(cls, query: dict):
-        return QuerySerializer().load(model=cls, data=query)
+        try:
+            return QuerySerializer().load(model=cls, data=query)
+        except ValidationError as e:
+            raise FilterError(message=e.messages, status_code=400)
 
 
 class AsDictModel(Model):

@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 from pynamodb.attributes import MapAttribute
 
-from .attributes import DynamicMapAttribute
-from .exceptions import FilterError
+from pynamodb_utils.attributes import DynamicMapAttribute
+from pynamodb_utils.exceptions import FilterError
 
 
 def parse_attr(attr):
