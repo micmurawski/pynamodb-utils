@@ -5,7 +5,6 @@ from pynamodb import attributes
 from pynamodb.expressions.operand import Path
 
 from pynamodb_utils.attributes import EnumAttribute
-
 from pynamodb_utils.exceptions import FilterError
 
 

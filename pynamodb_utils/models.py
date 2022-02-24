@@ -2,9 +2,8 @@ from marshmallow.exceptions import ValidationError
 from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.models import Model
 
-from pynamodb_utils.query_serializer import QuerySerializer
-
 from pynamodb_utils.exceptions import FilterError
+from pynamodb_utils.query_serializer import QuerySerializer
 from pynamodb_utils.utils import get_timestamp, parse_attrs_to_dict
 
 
