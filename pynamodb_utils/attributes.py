@@ -1,7 +1,7 @@
 from enum import Enum
 
 import six
-from pynamodb.attributes import MapAttribute, UnicodeAttribute
+from pynamodb.attributes import MapAttribute, NumberAttribute, UnicodeAttribute
 
 
 class DynamicMapAttribute(MapAttribute):
@@ -52,7 +52,7 @@ class DynamicMapAttribute(MapAttribute):
         return str(self.__class__)
 
 
-class EnumAttribute(UnicodeAttribute):
+class EnumNumberAttribute(NumberAttribute):
     def __init__(self, hash_key=False, range_key=False, null=None, default=None, attr_name=None, enum=None):
         if isinstance(enum, Enum):
             raise ValueError('enum must be Enum class')
@@ -70,3 +70,26 @@ class EnumAttribute(UnicodeAttribute):
 
     def deserialize(self, value):
         return self.enum(value).name
+
+
+class EnumUnicodeAttribute(UnicodeAttribute):
+    def __init__(self, hash_key=False, range_key=False, null=None, default=None, attr_name=None, enum=None):
+        if isinstance(enum, Enum):
+            raise ValueError('enum must be Enum class')
+        self.enum = enum
+        super().__init__(hash_key=hash_key, range_key=range_key, default=default, null=null, attr_name=attr_name)
+
+    def serialize(self, value):
+        if isinstance(value, self.enum):
+            return value.value
+        elif isinstance(value, str):
+            if value in self.enum.__members__.keys():
+                return getattr(self.enum, value).value
+        raise ValueError(
+            f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}')
+
+    def deserialize(self, value):
+        return self.enum(value).name
+
+
+EnumAttribute = EnumNumberAttribute

@@ -18,7 +18,7 @@ def test_enum_query_not_member_of(dynamodb):
 
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
-        category = EnumAttribute(enum=CategoryEnum)
+        category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
         content = UnicodeAttribute()
         sub_name = UnicodeAttribute(null=True)
         tags = DynamicMapAttribute(default={})
@@ -32,7 +32,7 @@ def test_enum_query_not_member_of(dynamodb):
     post = Post(
         name='A weekly news.',
         content='Last week took place...',
-        category=CategoryEnum.finance,
+        # category=CategoryEnum.finance,
         tags={
             "type": "news",
             "topics": ["stock exchange", "NYSE"]
