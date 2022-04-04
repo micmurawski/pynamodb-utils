@@ -21,7 +21,7 @@ def create_model_filter(model: Type[Model], args, _operator=operator.and_, raise
         if operator_name.replace('not_', '') not in OPERATORS_MAPPING:
             raise FilterError(
                 message={key: [f'Operator {operator_name} does not exist.'
-                               f' Choose some of available: {list(OPERATORS_MAPPING.keys())}']},
+                               f' Choose some of available: {", ".join(OPERATORS_MAPPING.keys())}']},
                 status_code=400
             )
         nested_attr = get_nested_attribute(model, field_name, raise_exception)

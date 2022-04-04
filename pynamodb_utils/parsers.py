@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 from pynamodb import attributes
 from pynamodb.expressions.operand import Path
 
-from pynamodb_utils.attributes import EnumAttribute
+from pynamodb_utils.attributes import EnumNumberAttribute, EnumUnicodeAttribute
 from pynamodb_utils.exceptions import FilterError
 
 
@@ -91,7 +91,8 @@ TYPE_MAPPING = {
     attributes.MapAttribute: default_parser,
     attributes.BooleanAttribute: default_bool_parser,
     attributes.NumberAttribute: default_number_parser,
-    EnumAttribute: default_enum_parser
+    EnumNumberAttribute: default_enum_parser,
+    EnumUnicodeAttribute: default_enum_parser
 }
 
 
