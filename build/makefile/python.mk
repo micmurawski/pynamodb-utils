@@ -30,6 +30,8 @@ python_test: $(PYTHON_VENV) install_dependencies tests/requirements.txt
 	$(call in_venv,$(PIP) install --no-cache --requirement tests/requirements.txt)
 	$(call in_venv,$(PYTEST) --cov-config pytest.ini --cov=$(COV) \
 		-s tests \
+		--cov-report xml \
+		--cov-report term-missing \
 	)
 
 .PHONY: python_venv
