@@ -1,38 +1,20 @@
+from datetime import datetime
+
 import pytest
 from freezegun import freeze_time
 
+from pynamodb_utils.filters import FilterError
+
 
 @freeze_time("2019-01-01 00:00:00+00:00")
-def test_enum_query_not_member_of(dynamodb):
-    import enum
-    from datetime import datetime, timezone
-
-    from pynamodb.attributes import UnicodeAttribute
-
-    from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
-    from pynamodb_utils.exceptions import FilterError
-
-    class CategoryEnum(enum.Enum):
-        finance = enum.auto()
-        politics = enum.auto()
-
-    class Post(AsDictModel, JSONQueryModel, TimestampedModel):
-        name = UnicodeAttribute(hash_key=True)
-        category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
-        content = UnicodeAttribute()
-        sub_name = UnicodeAttribute(null=True)
-        tags = DynamicMapAttribute(default={})
-
-        class Meta:
-            table_name = 'example-table-name'
-            TZINFO = timezone.utc
-
-    Post.create_table(read_capacity_units=10, write_capacity_units=10)
+def test_enum_query_not_member_of(post_table):
+    Post = post_table
+    CategoryEnum = Post.category.enum
 
     post = Post(
         name='A weekly news.',
         content='Last week took place...',
-        # category=CategoryEnum.finance,
+        category=CategoryEnum.finance,
         tags={
             "type": "news",
             "topics": ["stock exchange", "NYSE"]
@@ -52,30 +34,8 @@ def test_enum_query_not_member_of(dynamodb):
 
 
 @freeze_time("2019-01-01 00:00:00+00:00")
-def test_enum_create_not_member_of(dynamodb):
-    import enum
-    from datetime import timezone
-
-    from pynamodb.attributes import UnicodeAttribute
-
-    from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
-
-    class CategoryEnum(enum.Enum):
-        finance = enum.auto()
-        politics = enum.auto()
-
-    class Post(AsDictModel, JSONQueryModel, TimestampedModel):
-        name = UnicodeAttribute(hash_key=True)
-        category = EnumAttribute(enum=CategoryEnum)
-        content = UnicodeAttribute()
-        sub_name = UnicodeAttribute(null=True)
-        tags = DynamicMapAttribute(default={})
-
-        class Meta:
-            table_name = 'example-table-name'
-            TZINFO = timezone.utc
-
-    Post.create_table(read_capacity_units=10, write_capacity_units=10)
+def test_enum_create_not_member_of(post_table):
+    Post = post_table
 
     with pytest.raises(ValueError) as e:
         post = Post(

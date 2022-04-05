@@ -31,7 +31,7 @@ def get_nested_attribute(model, attr_string, raise_exception=True):
         elif raise_exception:
             raise FilterError(
                 message={attr_string: [f'Parameter {attr} does not exist.'
-                                       f' Choose some of available: {list(result.get_attributes())}']},
+                                       f' Choose some of available: {", ".join(result.get_attributes())}']},
                 status_code=400
             )
         else:

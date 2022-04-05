@@ -1,31 +1,14 @@
+from datetime import datetime
+
 from freezegun import freeze_time
+
+from pynamodb_utils.filters import FilterError
 
 
 @freeze_time("2019-01-01 00:00:00+00:00")
-def test_general(dynamodb):
-    import enum
-    from datetime import datetime, timezone
-
-    from pynamodb.attributes import UnicodeAttribute
-
-    from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
-
-    class CategoryEnum(enum.Enum):
-        finance = enum.auto()
-        politics = enum.auto()
-
-    class Post(AsDictModel, JSONQueryModel, TimestampedModel):
-        name = UnicodeAttribute(hash_key=True)
-        category = EnumAttribute(enum=CategoryEnum)
-        content = UnicodeAttribute()
-        sub_name = UnicodeAttribute(null=True)
-        tags = DynamicMapAttribute(default={})
-
-        class Meta:
-            table_name = 'example-table-name'
-            TZINFO = timezone.utc
-
-    Post.create_table(read_capacity_units=10, write_capacity_units=10)
+def test_general(post_table):
+    Post = post_table
+    CategoryEnum = Post.category.enum
 
     post = Post(
         name='A weekly news.',
@@ -62,3 +45,34 @@ def test_general(dynamodb):
     }
 
     assert next(results).as_dict() == expected
+
+
+def test_bad_field(post_table):
+    Post = post_table
+    CategoryEnum = Post.category.enum
+
+    post = Post(
+        name='A weekly news.',
+        content='Last week took place...',
+        category=CategoryEnum.finance,
+        tags={
+            "type": "news",
+            "topics": ["stock exchange", "NYSE"]
+        }
+    )
+    post.save()
+
+    try:
+        Post.get_conditions_from_json(query={
+            "tag.type__equals": "news"
+        })
+    except FilterError as e:
+        assert e.message == {
+            'Query': {
+                'tag.type': [
+                    'Parameter tag does not exist. Choose some of '
+                    'available: category, content, created_at, deleted_at, '
+                    'name, sub_name, tags, updated_at'
+                ]
+            }
+        }
