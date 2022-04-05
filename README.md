@@ -2,7 +2,7 @@
 
 Pynamodb Utils is a collection of small helper functions, utilities and classes which make common patterns easier. It helped me make my job easier in the past.
 
-[![Tests](https://github.com/micmurawski/pynamodb-utils/actions/workflows/main.yml/badge.svg)](https://github.com/micmurawski/pynamodb-utils/actions/workflows/main.yml)
+[![Tests](https://github.com/micmurawski/pynamodb-utils/actions/workflows/main.yml/badge.svg)](https://github.com/micmurawski/pynamodb-utils/actions/workflows/main.yml) [![pypi](https://img.shields.io/pypi/v/pynamodb-utils.svg)](https://pypi.org/project/pynamodb-utils/)
 
 ## Examples are:
 
