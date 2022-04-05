@@ -11,9 +11,7 @@ Pynamodb Utils is a collection of small helper functions, utilities and classes 
  - Class with methods that allow to generate from JSON/dict query/scan conditions
 
 ## To install:
-
- 1. Run ``pip install pynamodb-utils`` or execute ``python setup.py install`` in the source directory
- 2. Add ``pynamodb_utils`` to your ``INSTALLED_APPS``
+Run ``pip install pynamodb-utils`` or execute ``python setup.py install`` in the source directory
 
 ## Example of Usage
 
@@ -72,4 +70,5 @@ That lines of code should result with following output
 ```
 
 ## Links
+* https://github.com/pynamodb/PynamoDB
 * https://pypi.org/project/pynamodb-utils/
