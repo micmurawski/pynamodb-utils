@@ -39,6 +39,7 @@ class TimestampedModel(Model):
 
     def save(self, condition=None):
         tz_info = getattr(self.Meta, "TZINFO", None)
+        self.created_at = self.created_at.astimezone(tz=tz_info)
         self.updated_at = get_timestamp(tzinfo=tz_info)
         super().save(condition=condition)
 
