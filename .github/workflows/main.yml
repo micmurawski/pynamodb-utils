@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   test:
+    name: "Tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -14,3 +15,18 @@ jobs:
         run: make venv
       - name: Run tests
         run: make test
+  publish:
+      name: "Publish in PyPi"
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Publish
+          env:
+            USERNAME: ${{ secrets.USERNAME }}
+            PASSWORD: ${{ secrets.PASSWORD }}
+          run: |
+            pip3 install wheel twine
+            python3 setup.py sdist bdist_wheel
+            python3 -m twine check dist/*
+            python3 -m twine upload dist/* --verbose -u ${USERNAME} -p ${PASSWORD}
+
