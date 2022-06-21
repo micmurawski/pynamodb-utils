@@ -18,6 +18,8 @@ jobs:
   publish:
       name: "Publish in PyPi"
       runs-on: ubuntu-latest
+      needs:
+        - test
       steps:
         - uses: actions/checkout@v3
         - name: Publish
