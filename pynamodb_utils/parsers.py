@@ -100,6 +100,8 @@ def parse_value(model, field_name: str, value):
     attrs = field_name.split('.')
     if len(attrs) == 1:
         _type = type(getattr(model, field_name))
+        if issubclass(_type, attributes.MapAttribute):
+            return TYPE_MAPPING[attributes.MapAttribute](value, field_name, model)
         return TYPE_MAPPING[_type](value, field_name, model)
     else:
         return TYPE_MAPPING[attributes.MapAttribute](value, field_name, model)
