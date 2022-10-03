@@ -12,7 +12,7 @@ def parse_attr(attr):
     elif isinstance(attr, MapAttribute):
         return parse_attrs_to_dict(attr)
     elif isinstance(attr, datetime):
-        return str(attr)
+        return datetime.isoformat(attr, sep='T')
     return attr
 
 
