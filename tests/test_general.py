@@ -32,7 +32,7 @@ def test_general(post_table):
 
     expected = {
         'content': 'Last week took place...',
-        'created_at': '2019-01-01 00:00:00+00:00',
+        'created_at': '2019-01-01T00:00:00+00:00',
         'deleted_at': None,
         'name': 'A weekly news.',
         'category': 'finance',
@@ -41,7 +41,7 @@ def test_general(post_table):
             'type': 'news',
             'topics': ['stock exchange', 'NYSE']
         },
-        'updated_at': '2019-01-01 00:00:00+00:00'
+        'updated_at': '2019-01-01T00:00:00+00:00'
     }
 
     assert next(results).as_dict() == expected
