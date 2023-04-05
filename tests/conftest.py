@@ -3,7 +3,8 @@ from datetime import timezone
 
 import pytest
 from moto import mock_dynamodb2
-from pynamodb.attributes import UnicodeAttribute
+from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute
+from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 
 from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
 
@@ -13,20 +14,32 @@ def dynamodb():
     with mock_dynamodb2():
         yield
 
-
 @pytest.fixture
-def post_table(dynamodb):
-
+def post_enum():
     class CategoryEnum(enum.Enum):
         finance = enum.auto()
         politics = enum.auto()
 
+    return CategoryEnum
+
+@pytest.fixture
+def post_table(dynamodb, post_enum):
+
+    class PostCategoryCreatedAtGSI(GlobalSecondaryIndex):
+        category = EnumAttribute(hash_key=True, enum=post_enum)
+        created_at = UTCDateTimeAttribute(range_key=True)
+
+        class Meta:
+            index_name = "example-index-name"
+            projection = AllProjection
+
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
-        category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
+        sub_name = UnicodeAttribute(range_key=True)
+        category = EnumAttribute(enum=post_enum, default=post_enum.finance)
         content = UnicodeAttribute()
-        sub_name = UnicodeAttribute(null=True)
         tags = DynamicMapAttribute(default={})
+        category_created_at_gsi = PostCategoryCreatedAtGSI()
 
         class Meta:
             table_name = 'example-table-name'

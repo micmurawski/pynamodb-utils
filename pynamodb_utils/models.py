@@ -5,7 +5,7 @@ from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.models import Model
 
 from pynamodb_utils.exceptions import FilterError
-from pynamodb_utils.query_serializer import QuerySerializer
+from pynamodb_utils.serializers import ConditionsSerializer, QuerySerializer
 from pynamodb_utils.utils import get_timestamp, parse_attrs_to_dict
 
 
@@ -17,10 +17,17 @@ class JSONQueryModel(Model):
     @classmethod
     def get_conditions_from_json(cls, query: dict):
         try:
-            return QuerySerializer().load(model=cls, data=query)
+            return ConditionsSerializer().load(model=cls, data=query)
         except ValidationError as e:
             raise FilterError(message=e.messages, status_code=400)
-
+        
+    @classmethod
+    def make_optimized_query(cls, query: dict, **kwargs):
+        try:
+            idx, query = QuerySerializer().load(model=cls, data=query)
+            return idx.query(**query, **kwargs)
+        except ValidationError as e:
+            raise FilterError(message=e.messages, status_code=400)
 
 class AsDictModel(Model):
 

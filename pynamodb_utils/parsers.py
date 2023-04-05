@@ -118,6 +118,10 @@ def get_startswith_condition(model, field_name: str, attr, value):
     return attr.startswith(parse_value(model, field_name, value))
 
 
+def get_exists_condition(model, field_name: str, attr, value):
+    return attr.exists()
+
+
 def get_gt_condition(model, field_name: str, attr, value):
     return attr.__gt__(parse_value(model, field_name, value))
 
@@ -152,6 +156,7 @@ OPERATORS_MAPPING = {
     '': get_equals_condition,
     'equals': get_equals_condition,
     'contains': get_contains_condition,
+    'exists': get_exists_condition,
     'startswith': get_startswith_condition,
     'gt': get_gt_condition,
     'lt': get_lt_condition,
