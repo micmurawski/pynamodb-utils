@@ -14,19 +14,16 @@ def dynamodb():
     with mock_dynamodb2():
         yield
 
+
 @pytest.fixture
-def post_enum():
+def post_table(dynamodb):
+
     class CategoryEnum(enum.Enum):
         finance = enum.auto()
         politics = enum.auto()
 
-    return CategoryEnum
-
-@pytest.fixture
-def post_table(dynamodb, post_enum):
-
     class PostCategoryCreatedAtGSI(GlobalSecondaryIndex):
-        category = EnumAttribute(hash_key=True, enum=post_enum)
+        category = EnumAttribute(hash_key=True, enum=CategoryEnum)
         created_at = UTCDateTimeAttribute(range_key=True)
 
         class Meta:
@@ -36,7 +33,7 @@ def post_table(dynamodb, post_enum):
     class Post(AsDictModel, JSONQueryModel, TimestampedModel):
         name = UnicodeAttribute(hash_key=True)
         sub_name = UnicodeAttribute(range_key=True)
-        category = EnumAttribute(enum=post_enum, default=post_enum.finance)
+        category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
         content = UnicodeAttribute()
         tags = DynamicMapAttribute(default={})
         category_created_at_gsi = PostCategoryCreatedAtGSI()

@@ -151,7 +151,13 @@ class QuerySerializer(Schema):
                 break
             if set(_equals.keys()) & set(k):
                 prefered_index = idx_map[k]
-                break
+
+        if prefered_index is None:
+            raise ValidationError(
+                message={
+                    "Query": ["Could not find index for query"]
+                }
+            )
 
         range_key_query = {}
         _keys = [_k for _k in original_data if _k.rsplit("__", 1)[0].startswith(k[1])]
@@ -170,5 +176,8 @@ class QuerySerializer(Schema):
             original_data,
             self.raise_exception
         )
-        return prefered_index, {"hash_key": parse_value(self.model, k[0], _equals[k[0]]), "range_key_condition": range_key_condition, "filter_condition": condition}
-      
+        return prefered_index, {
+            "hash_key": parse_value(self.model, k[0], _equals[k[0]]),
+            "range_key_condition": range_key_condition,
+            "filter_condition": condition
+        }
