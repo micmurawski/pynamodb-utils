@@ -16,13 +16,15 @@ class JSONQueryModel(Model):
 
     @classmethod
     def get_conditions_from_json(cls, query: dict):
+        """ Function parses query dictionary and returns computed pynamodb condition """
         try:
             return ConditionsSerializer().load(model=cls, data=query)
         except ValidationError as e:
             raise FilterError(message=e.messages, status_code=400)
         
     @classmethod
-    def make_optimized_query(cls, query: dict, **kwargs):
+    def make_index_query(cls, query: dict, **kwargs):
+        """ Function parses query dictionary and executes query on index most suitable index """
         try:
             idx, query = QuerySerializer().load(model=cls, data=query)
             return idx.query(**query, **kwargs)

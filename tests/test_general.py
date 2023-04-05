@@ -6,7 +6,7 @@ from pynamodb_utils.filters import FilterError
 
 
 @freeze_time("2019-01-01 00:00:00+00:00")
-def test_general(post_table, post_enum):
+def test_general(post_table):
     Post = post_table
     CategoryEnum = Post.category.enum
 
@@ -29,7 +29,7 @@ def test_general(post_table, post_enum):
         "tags.topics__contains": ["NYSE"]
     }
 
-    results = Post.make_optimized_query(query)
+    results = Post.make_index_query(query)
 
     expected = {
         'content': 'Last week took place...',

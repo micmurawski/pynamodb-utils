@@ -13,6 +13,7 @@ def test_enum_query_not_member_of(post_table):
 
     post = Post(
         name='A weekly news.',
+        sub_name='Shocking revelations',
         content='Last week took place...',
         category=CategoryEnum.finance,
         tags={
@@ -25,7 +26,7 @@ def test_enum_query_not_member_of(post_table):
     with pytest.raises(FilterError) as e:
         Post.get_conditions_from_json(query={
             "created_at__lte": str(datetime.now()),
-            "sub_name": None,
+            "sub_name__exists": None,
             "category__equals": 1,
             "tags.type__equals": "news",
             "tags.topics__contains": ["NYSE"]
