@@ -6,12 +6,13 @@ from pynamodb_utils.filters import FilterError
 
 
 @freeze_time("2019-01-01 00:00:00+00:00")
-def test_general(post_table):
+def test_general(post_table, post_enum):
     Post = post_table
     CategoryEnum = Post.category.enum
 
     post = Post(
         name='A weekly news.',
+        sub_name='Shocking revelations',
         content='Last week took place...',
         category=CategoryEnum.finance,
         tags={
@@ -20,15 +21,15 @@ def test_general(post_table):
         }
     )
     post.save()
-
-    condition = Post.get_conditions_from_json(query={
+    query = {
         "created_at__lte": str(datetime.now()),
-        "sub_name": None,
+        "sub_name__exists": None,
         "category__equals": "finance",
         "tags.type__equals": "news",
         "tags.topics__contains": ["NYSE"]
-    })
-    results = Post.scan(filter_condition=condition)
+    }
+
+    results = Post.make_optimized_query(query)
 
     expected = {
         'content': 'Last week took place...',
@@ -36,7 +37,7 @@ def test_general(post_table):
         'deleted_at': None,
         'name': 'A weekly news.',
         'category': 'finance',
-        "sub_name": None,
+        'sub_name': 'Shocking revelations',
         'tags': {
             'type': 'news',
             'topics': ['stock exchange', 'NYSE']
@@ -53,6 +54,7 @@ def test_bad_field(post_table):
 
     post = Post(
         name='A weekly news.',
+        sub_name='Shocking revelations',
         content='Last week took place...',
         category=CategoryEnum.finance,
         tags={
