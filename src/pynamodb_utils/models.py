@@ -1,6 +1,5 @@
 from datetime import timezone
 
-from marshmallow.exceptions import ValidationError
 from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.expressions.condition import Condition
 from pynamodb.models import Model, ResultIterator
@@ -25,10 +24,7 @@ class JSONQueryModel(Model):
             Returns:
                     condtion (Condition): computed pynamodb condition
         """
-        try:
-            return ConditionsSerializer(cls).load(data=query)
-        except ValidationError as e:
-            raise FilterError(message=e.messages, status_code=400)
+        return ConditionsSerializer(cls).load(data=query)
 
     @classmethod
     def make_index_query(cls, query: dict, **kwargs) -> ResultIterator[Model]:
@@ -41,11 +37,8 @@ class JSONQueryModel(Model):
             Returns:
                     result_iterator (result_iterator): result iterator for optimized query
         """
-        try:
-            idx, query = QuerySerializer(cls).load(data=query)
-            return idx.query(**query, **kwargs)
-        except ValidationError as e:
-            raise FilterError(message=e.messages, status_code=400)
+        idx, query = QuerySerializer(cls).load(data=query)
+        return idx.query(**query, **kwargs)
 
 
 class AsDictModel(Model):
