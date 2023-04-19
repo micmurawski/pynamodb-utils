@@ -24,10 +24,25 @@ from pynamodb_utils import DynamicMapAttribute, AsDictModel,
 JSONQueryModel, TimestampedModel
 
 
+class CategoryEnum(enum.Enum):
+    finance = enum.auto()
+    politics = enum.auto()
+
+class PostCategoryCreatedAtGSI(GlobalSecondaryIndex):
+    category = EnumAttribute(hash_key=True, enum=CategoryEnum)
+    created_at = UTCDateTimeAttribute(range_key=True)
+
+    class Meta:
+        index_name = "example-index-name"
+        projection = AllProjection
+
 class Post(AsDictModel, JSONQueryModel, TimestampedModel):
     name = UnicodeAttribute(hash_key=True)
+    sub_name = UnicodeAttribute(range_key=True)
+    category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
     content = UnicodeAttribute()
     tags = DynamicMapAttribute(default={})
+    category_created_at_gsi = PostCategoryCreatedAtGSI()
 
     class Meta:
         table_name = 'example-table-name'
@@ -37,7 +52,9 @@ Post.create_table(read_capacity_units=10, write_capacity_units=10)
 
 post = Post(
     name='A weekly news.',
+    sub_name='Shocking revelations',
     content='Last week took place...',
+    category=CategoryEnum.finance,
     tags={
         "type": "news",
         "topics": ["stock exchange", "NYSE"]
@@ -45,12 +62,14 @@ post = Post(
 )
 post.save()
 
-condition = Post.get_conditions_from_json(query={
-    "created_at__lte": str(datetime.now()),
-    "tags.type__equals": "news",
-    "tags.topics__contains": ["NYSE"]
-})
-results = Post.scan(filter_condition=condition)
+condition = Post.make_index_query(
+    query={
+        "created_at__lte": str(datetime.now()),
+        "sub_name__exists": None,
+        "category__equals": "finance",
+        "OR": {"tags.type__equals": "news", "tags.topics__contains": ["NYSE"]},
+    }
+) # class method executes query on the most optimal index
 print(next(results).as_dict())
 ```
 That lines of code should result with following output
