@@ -4,7 +4,6 @@ from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.expressions.condition import Condition
 from pynamodb.models import Model, ResultIterator
 
-from pynamodb_utils.exceptions import FilterError
 from pynamodb_utils.serializers import ConditionsSerializer, QuerySerializer
 from pynamodb_utils.utils import get_timestamp, parse_attrs_to_dict
 
