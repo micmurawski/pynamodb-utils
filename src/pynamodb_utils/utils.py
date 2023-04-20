@@ -35,6 +35,23 @@ def create_index_map(
     return idx_map
 
 
+def pick_index_keys(
+    idx_map: Dict[Tuple[str, str], Union[Model, GlobalSecondaryIndex, LocalSecondaryIndex]],
+    _equals: Dict[str, str],
+    _rest: Dict[str, str]
+) -> Tuple[str, str]:
+    common_keys = 0
+    keys = None
+    for k in idx_map:
+        val_1 = len(set(_equals.keys()) & set(k))
+        val_2 = int(k[0] in set(_equals.keys())) + int(k[1] in set(_rest.keys()))
+        val = max(val_1, val_2)
+        if val > common_keys:
+            common_keys = val
+            keys = k
+    return keys
+
+
 def parse_attr(attr: Attribute) -> Union[Dict, datetime]:
     """
     Function parses attribute to corresponding values
