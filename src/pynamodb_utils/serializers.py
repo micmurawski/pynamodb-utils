@@ -2,7 +2,7 @@ import operator
 import os
 from abc import abstractmethod
 from functools import reduce
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from pynamodb.indexes import GlobalSecondaryIndex, LocalSecondaryIndex
 from pynamodb.models import Model
@@ -17,8 +17,8 @@ MAX_QUERY_DEPTH = int(os.environ.get("PYNAMODB_UTILS_MAX_QUERY_DEPTH", 10))
 
 
 class Serializer:
-    def __init__(self, model) -> None:
-        self.model = model
+    def __init__(self, model: Model) -> None:
+        self.model: Model = model
         super().__init__()
 
     @abstractmethod
@@ -28,6 +28,10 @@ class Serializer:
 
 class ConditionsSerializer(Serializer):
     STATEMENT_OPERATOR_MAP = {"AND": operator.and_, "OR": operator.or_}
+
+    def __init__(self, model: Model, unavailable_attributes: List[str] = []) -> None:
+        self.unavailable_attributes: List[str] = unavailable_attributes
+        super().__init__(model)
 
     def _get_conditions(
         self,
@@ -58,6 +62,7 @@ class ConditionsSerializer(Serializer):
                     args=data,
                     _operator=_operator,
                     raise_exception=raise_exception,
+                    unavailable_attributes=self.unavailable_attributes
                 )
             )
         return reduce(operator.and_, conditions) if conditions else None
@@ -72,6 +77,10 @@ class ConditionsSerializer(Serializer):
 
 
 class QuerySerializer(Serializer):
+    def __init__(self, model: Model, unavailable_attributes: List[str] = []) -> None:
+        self.unavailable_attributes: List[str] = unavailable_attributes
+        super().__init__(model)
+
     def _create_query(self, data: dict, raise_exception: bool = False):
         idx_map = create_index_map(self.model)
         _equals = {}
@@ -98,7 +107,7 @@ class QuerySerializer(Serializer):
 
         for _k in hash_keys:
             del data[_k]
-        condtions_serializer = ConditionsSerializer(self.model)
+        condtions_serializer = ConditionsSerializer(self.model, self.unavailable_attributes)
         range_key_condition = condtions_serializer.load(
             range_key_query, raise_exception
         )

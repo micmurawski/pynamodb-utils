@@ -1,4 +1,5 @@
 from datetime import timezone
+from typing import Any, List
 
 from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.expressions.condition import Condition
@@ -23,7 +24,8 @@ class JSONQueryModel(Model):
             Returns:
                     condtion (Condition): computed pynamodb condition
         """
-        return ConditionsSerializer(cls).load(data=query)
+        query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
+        return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query)
 
     @classmethod
     def make_index_query(cls, query: dict, **kwargs) -> ResultIterator[Model]:
@@ -36,7 +38,8 @@ class JSONQueryModel(Model):
             Returns:
                     result_iterator (result_iterator): result iterator for optimized query
         """
-        idx, query = QuerySerializer(cls).load(data=query)
+        query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
+        idx, query = QuerySerializer(cls, query_unavailable_attributes).load(data=query)
         return idx.query(**query, **kwargs)
 
 
@@ -46,7 +49,23 @@ class AsDictModel(Model):
 
     def as_dict(self) -> dict:
         """ Parses pynamodb model instance to python dict"""
-        return parse_attrs_to_dict(self)
+        invisible_attributes: List[str] = getattr(self.Meta, "invisible_attributes", [])
+        result: dict = parse_attrs_to_dict(self)
+        attr: str
+        for attr in invisible_attributes:
+            self._pop_path(result, attr)
+        return result
+
+    @staticmethod
+    def _pop_path(obj: dict, path: str) -> Any:
+        attrs = path.split(".")[::-1]
+        _len = len(attrs)
+        for i in range(len(attrs)):
+            key = attrs[i]
+            if key in obj:
+                if i == _len - 1:
+                    return obj.pop(key)
+                obj = obj[key]
 
 
 class TimestampedModel(Model):

@@ -36,10 +36,13 @@ def post_table(dynamodb):
         content = UnicodeAttribute()
         tags = DynamicMapAttribute(default={})
         category_created_at_gsi = PostCategoryCreatedAtGSI()
+        secret_parameter = UnicodeAttribute(default="secret")
 
         class Meta:
             table_name = "example-table-name"
             TZINFO = timezone.utc
+            query_unavailable_attributes = ["secret_parameter"]
+            invisible_attributes = ["secret_parameter"]
 
     Post.create_table(read_capacity_units=10, write_capacity_units=10)
 

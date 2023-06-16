@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
 from pynamodb.attributes import Attribute, MapAttribute
 from pynamodb.indexes import GlobalSecondaryIndex, LocalSecondaryIndex
 from pynamodb.models import Model
 
 from pynamodb_utils.attributes import DynamicMapAttribute
-from pynamodb_utils.exceptions import FilterError
+
+NoneType = type(None)
 
 
 def create_index_map(
@@ -39,7 +40,7 @@ def pick_index_keys(
     idx_map: Dict[Tuple[str, str], Union[Model, GlobalSecondaryIndex, LocalSecondaryIndex]],
     _equals: Dict[str, str],
     _rest: Dict[str, str]
-) -> Tuple[str, str]:
+) -> Tuple[str, str] | NoneType:
     common_keys = 0
     keys = None
     for k in idx_map:
@@ -72,7 +73,22 @@ def parse_attrs_to_dict(obj: Any) -> Dict[str, Any]:
     return {k: parse_attr(getattr(obj, k, None)) for k in obj.get_attributes().keys()}
 
 
-def get_nested_attribute(model: Model, attr_string: str, raise_exception: bool = True) -> Attribute:
+def get_attributes_list(model: Model, depth: int = 0) -> List[str]:
+    attrs = []
+    for attr_str in model.get_attributes().keys():
+        attr = getattr(model, attr_str)
+        if isinstance(attr, MapAttribute):
+            attrs += [f"{attr_str}.{a}" for a in get_attributes_list(attr, depth=depth+1)]
+        attrs.append(attr_str)
+    return attrs
+
+
+def get_available_attributes_list(model: Model, unavaiable_attrs: List[str] = []) -> Set[str]:
+    atts: set = set(get_attributes_list(model))
+    return atts.difference(unavaiable_attrs)
+
+
+def get_attribute(model: Model, attr_string: str) -> Attribute:
     """
     Function gets nested attribute based on path (attr_string)
     """
@@ -83,16 +99,6 @@ def get_nested_attribute(model: Model, attr_string: str, raise_exception: bool =
             result = result[attr]
         elif hasattr(result, attr):
             result = getattr(result, attr)
-        elif raise_exception:
-            raise FilterError(
-                message={
-                    attr_string: [
-                        f"Parameter {attr} does not exist."
-                        f' Choose some of available: {", ".join(result.get_attributes())}'
-                    ]
-                },
-                status_code=400,
-            )
         else:
             return None
     return result

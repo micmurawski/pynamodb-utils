@@ -1,4 +1,6 @@
 from datetime import datetime
+from functools import reduce
+from operator import and_
 from typing import Any, Dict, List, Union
 
 from pynamodb import attributes
@@ -108,6 +110,7 @@ def default_enum_parser(value: Any, field_name: str, model: Model) -> Any:
 TYPE_MAPPING = {
     attributes.UTCDateTimeAttribute: parse_string_to_datetime,
     attributes.UnicodeAttribute: default_str_parser,
+    attributes.UnicodeSetAttribute: default_str_parser,
     Path: default_parser,
     attributes.ListAttribute: default_list_parser,
     attributes.JSONAttribute: default_dict_parser,
@@ -171,7 +174,7 @@ def get_contains_condition(model: Model, field_name: str, attr: Attribute, value
 def get_is_in_condition(model: Model, field_name: str, attr: Attribute, value: Any) -> Condition:
     parsed_value = parse_value(model, field_name, value)
     if isinstance(parsed_value, list):
-        return attr.is_in(*parsed_value)
+        return reduce(and_, [attr.is_in(item) for item in parsed_value])
     return attr.is_in(parsed_value)
 
 

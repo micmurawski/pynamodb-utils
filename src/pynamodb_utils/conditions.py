@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List, Set
 
 from pynamodb.attributes import Attribute
 from pynamodb.expressions.condition import Condition
@@ -9,14 +9,15 @@ from pynamodb.models import Model
 
 from pynamodb_utils.exceptions import FilterError
 from pynamodb_utils.parsers import OPERATORS_MAPPING
-from pynamodb_utils.utils import get_nested_attribute
+from pynamodb_utils.utils import get_attribute, get_available_attributes_list
 
 
 def create_model_condition(
     model: Model,
     args: Dict[str, Any],
     _operator: Callable = operator.and_,
-    raise_exception: bool = True
+    raise_exception: bool = True,
+    unavailable_attributes: List[str] = []
 ) -> Condition:
     """
         Function creates pynamodb conditions based on input dictionary (args)
@@ -25,30 +26,48 @@ def create_model_condition(
                 args (dict): The input dictionary with query
                 _operator (Callable): operator used to consolidate conditions
                 raise_exception (bool): boolean value enabling expceptions on missing nested attrs
+                unavailable_attributes (list): list of attribiutes that should be unavailable
         Returns:
                 condtion (Condition): computed pynamodb condition
     """
-    conditions_list = []
+    conditions_list: List[Condition] = []
 
+    available_attributes: Set[str] = get_available_attributes_list(
+        model=model,
+        unavaiable_attrs=unavailable_attributes
+    )
+
+    key: str
+    value: Any
     for key, value in args.items():
-        array = key.rsplit('__', 1)
-        field_name = array[0]
-        operator_name = array[1] if len(array) > 1 and array[1] != 'not' else ''
+        array: List[str] = key.rsplit('__', 1)
+        field_path: str = array[0]
+        operator_name: str = array[1] if len(array) > 1 and array[1] != 'not' else ''
         if operator_name.replace('not_', '') not in OPERATORS_MAPPING:
             raise FilterError(
                 message={key: [f'Operator {operator_name} does not exist.'
                                f' Choose some of available: {", ".join(OPERATORS_MAPPING.keys())}']}
             )
-        nested_attr = get_nested_attribute(model, field_name, raise_exception)
+        if field_path not in available_attributes and raise_exception:
+            raise FilterError(
+                message={
+                    field_path: [
+                        f"Parameter {field_path} does not exist."
+                        f' Choose some of available: {", ".join(available_attributes)}'
+                    ]
+                }
+            )
 
-        if isinstance(nested_attr, (Attribute, Path)):
+        attr: Attribute = get_attribute(model, field_path)
+
+        if isinstance(attr, (Attribute, Path)):
             if 'not_' in operator_name:
                 operator_name = operator_name.replace('not_', '')
                 operator_handler = OPERATORS_MAPPING[operator_name]
-                conditions_list.append(~operator_handler(model, field_name, nested_attr, value))
+                conditions_list.append(~operator_handler(model, field_path, attr, value))
             else:
                 operator_handler = OPERATORS_MAPPING[operator_name]
-                conditions_list.append(operator_handler(model, field_name, nested_attr, value))
+                conditions_list.append(operator_handler(model, field_path, attr, value))
     if not conditions_list:
         return None
     else:
