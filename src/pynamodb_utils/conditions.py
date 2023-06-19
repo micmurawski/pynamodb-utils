@@ -43,12 +43,20 @@ def create_model_condition(
         array: List[str] = key.rsplit('__', 1)
         field_path: str = array[0]
         operator_name: str = array[1] if len(array) > 1 and array[1] != 'not' else ''
+
+        if "." in field_path:
+            _field_path = field_path.split(".", 1)[0] + ".*"
+            is_available = _field_path in available_attributes
+        else:
+
+            is_available = field_path in available_attributes
+
         if operator_name.replace('not_', '') not in OPERATORS_MAPPING:
             raise FilterError(
                 message={key: [f'Operator {operator_name} does not exist.'
                                f' Choose some of available: {", ".join(OPERATORS_MAPPING.keys())}']}
             )
-        if field_path not in available_attributes and raise_exception:
+        if not is_available and raise_exception:
             raise FilterError(
                 message={
                     field_path: [

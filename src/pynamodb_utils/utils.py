@@ -79,6 +79,8 @@ def get_attributes_list(model: Model, depth: int = 0) -> List[str]:
         attr = getattr(model, attr_str)
         if isinstance(attr, MapAttribute):
             attrs += [f"{attr_str}.{a}" for a in get_attributes_list(attr, depth=depth+1)]
+        if isinstance(attr, DynamicMapAttribute):
+            attrs.append(f"{attr_str}.*")
         attrs.append(attr_str)
     return attrs
 
