@@ -14,7 +14,7 @@ class JSONQueryModel(Model):
         abstract = True
 
     @classmethod
-    def get_conditions_from_json(cls, query: dict) -> Condition:
+    def get_conditions_from_json(cls, query: dict, raise_exception: bool = True) -> Condition:
         """
             Class method parses query dictionary and returns computed pynamodb condition.
 
@@ -25,10 +25,10 @@ class JSONQueryModel(Model):
                     condtion (Condition): computed pynamodb condition
         """
         query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
-        return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query)
+        return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query, raise_exception=raise_exception)
 
     @classmethod
-    def make_index_query(cls, query: dict, **kwargs) -> ResultIterator[Model]:
+    def make_index_query(cls, query: dict, raise_exception: bool = True, **kwargs) -> ResultIterator[Model]:
         """
             Class method parses query dictionary and executes query on index most suitable index
 
@@ -39,7 +39,8 @@ class JSONQueryModel(Model):
                     result_iterator (result_iterator): result iterator for optimized query
         """
         query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
-        idx, query = QuerySerializer(cls, query_unavailable_attributes).load(data=query)
+        idx, query = QuerySerializer(cls, query_unavailable_attributes).load(
+            data=query, raise_exception=raise_exception)
         return idx.query(**query, **kwargs)
 
 

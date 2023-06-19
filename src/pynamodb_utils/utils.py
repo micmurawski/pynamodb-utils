@@ -84,8 +84,8 @@ def get_attributes_list(model: Model, depth: int = 0) -> List[str]:
 
 
 def get_available_attributes_list(model: Model, unavaiable_attrs: List[str] = []) -> Set[str]:
-    atts: set = set(get_attributes_list(model))
-    return atts.difference(unavaiable_attrs)
+    attrs: List[str] = get_attributes_list(model)
+    return [attr for attr in attrs if attr not in unavaiable_attrs]
 
 
 def get_attribute(model: Model, attr_string: str) -> Attribute:
