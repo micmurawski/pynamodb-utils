@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from functools import reduce
 from operator import and_
@@ -47,17 +48,24 @@ def default_parser(value: Any, *args) -> Any:
     return value
 
 
-def default_list_parser(value: List[Any], field_name: str, *args) -> List[Any]:
+def default_list_parser(value: List[Any], field_name: str, model: Model) -> List[Any]:
     if isinstance(value, (list, NoneType)):
         return value
-    raise FilterError(
-        message={field_name: [f"{value} is not valid type of {field_name}."]}
-    )
+    elif isinstance(value, str):
+        field = getattr(model, field_name)
+        _type = field.element_type() if field else attributes.UnicodeAttribute()
+        return [_type.deserialize(i) for i in value.split(',')]
+    raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
 def default_dict_parser(value: Dict, field_name: str, *args) -> Dict[Any, Any]:
     if isinstance(value, (dict, NoneType)):
         return value
+    elif isinstance(value, str):
+        try:
+            return json.dumps(value, default=str)
+        except (ValueError, json.JSONDecodeError):
+            pass
     raise FilterError(
         message={field_name: [f"{value} is not valid type of {field_name}."]}
     )
@@ -66,6 +74,17 @@ def default_dict_parser(value: Dict, field_name: str, *args) -> Dict[Any, Any]:
 def default_bool_parser(value: bool, field_name: str, *args) -> bool:
     if isinstance(value, (bool, NoneType)):
         return value
+    elif isinstance(value, str):
+        if value.lower() == "true":
+            return True
+        elif value.lower() == "false":
+            return False
+        else:
+            try:
+                return bool(value)
+            except ValueError:
+                pass
+
     raise FilterError(
         message={field_name: [f"{value} is not valid type of {field_name}."]}
     )
@@ -82,6 +101,12 @@ def default_str_parser(value: Any, field_name: str, *args) -> str:
 def default_number_parser(value: Union[float, int], field_name: str, *args) -> Union[float, int]:
     if isinstance(value, (float, int, NoneType)):
         return value
+    elif isinstance(value, (str)):
+        try:
+            return float(value)
+        except ValueError:
+            pass
+
     raise FilterError(
         message={field_name: [f"{value} is not valid type of {field_name}."]}
     )
