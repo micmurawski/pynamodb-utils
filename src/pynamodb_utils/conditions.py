@@ -22,13 +22,13 @@ def create_model_condition(
     """
         Function creates pynamodb conditions based on input dictionary (args)
         Parameters:
-                model (pynamodb.model.Model): Corresponing pynamodb model
+                model (pynamodb.model.Model): Corresponding pynamodb model
                 args (dict): The input dictionary with query
                 _operator (Callable): operator used to consolidate conditions
-                raise_exception (bool): boolean value enabling expceptions on missing nested attrs
-                unavailable_attributes (list): list of attribiutes that should be unavailable
+                raise_exception (bool): boolean value enabling exceptions on missing nested attrs
+                unavailable_attributes (list): list of attributes that should be unavailable
         Returns:
-                condtion (Condition): computed pynamodb condition
+                condition (Condition): computed pynamodb condition
     """
     conditions_list: List[Condition] = []
 

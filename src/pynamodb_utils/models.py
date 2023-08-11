@@ -22,7 +22,7 @@ class JSONQueryModel(Model):
                     query (dict): A decimal integer
 
             Returns:
-                    condtion (Condition): computed pynamodb condition
+                    condition (Condition): computed pynamodb condition
         """
         query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
         return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query, raise_exception=raise_exception)
