@@ -44,14 +44,14 @@ class ConditionsSerializer(Serializer):
             raise SerializerError(message={"Query": ["Maximal query depth has been reached."]})
 
         conditions = []
-        for k, _operator in self.STATEMENT_OPERATOR_MAP.items():
+        for k, __operator in self.STATEMENT_OPERATOR_MAP.items():
             statement = data.pop(k, None)
             if statement:
                 conditions.append(
                     self._get_conditions(
                         data=statement,
                         raise_exception=raise_exception,
-                        _operator=_operator,
+                        _operator=__operator,
                         depth=depth + 1,
                     )
                 )
@@ -93,28 +93,27 @@ class QuerySerializer(Serializer):
                 else:
                     _rest[_name] = data[k]
 
-        prefered_index_key = pick_index_keys(idx_map, _equals, _rest)
+        preferred_index_key = pick_index_keys(idx_map, _equals, _rest)
 
-        if prefered_index_key is None:
+        if preferred_index_key is None:
             raise SerializerError(message={"Query": ["Could not find index for query"]})
 
         range_key_query = {}
-        range_keys = [_k for _k in data if _k.rsplit("__", 1)[0].startswith(prefered_index_key[1])]
-        hash_keys = [_k for _k in data if _k.rsplit("__", 1)[0].startswith(prefered_index_key[0])]
+        range_keys = [_k for _k in data if _k.rsplit("__", 1)[0].startswith(preferred_index_key[1])]
+        hash_keys = [_k for _k in data if _k.rsplit("__", 1)[0].startswith(preferred_index_key[0])]
         for _k in range_keys:
             range_key_query[_k] = data[_k]
             del data[_k]
 
         for _k in hash_keys:
             del data[_k]
-        condtions_serializer = ConditionsSerializer(self.model, self.unavailable_attributes)
-        range_key_condition = condtions_serializer.load(
+        conditions_serializer = ConditionsSerializer(self.model, self.unavailable_attributes)
+        range_key_condition = conditions_serializer.load(
             range_key_query, raise_exception
         )
-        condition = condtions_serializer.load(data, raise_exception)
-        hash_key = parse_value(self.model, prefered_index_key[0], _equals[prefered_index_key[0]])
-
-        result = idx_map[prefered_index_key], {
+        condition = conditions_serializer.load(data, raise_exception)
+        hash_key = parse_value(self.model, preferred_index_key[0], _equals[preferred_index_key[0]])
+        result = idx_map[preferred_index_key], {
             "hash_key": hash_key,
             "range_key_condition": range_key_condition,
             "filter_condition": condition,
