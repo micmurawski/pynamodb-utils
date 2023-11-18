@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pynamodb.attributes import Attribute, MapAttribute
 from pynamodb.indexes import GlobalSecondaryIndex, LocalSecondaryIndex
@@ -40,7 +40,7 @@ def pick_index_keys(
     idx_map: Dict[Tuple[str, str], Union[Model, GlobalSecondaryIndex, LocalSecondaryIndex]],
     _equals: Dict[str, str],
     _rest: Dict[str, str]
-) -> Tuple[str, str] | NoneType:
+) -> Optional[Tuple[str, str]]:
     common_keys = 0
     keys = None
     for k in idx_map:
