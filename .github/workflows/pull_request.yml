@@ -1,0 +1,14 @@
+name: Release
+on:
+  pull_request:
+    types: [opened]
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create venv
+        run: make venv
+      - name: Run tests
+        run: make test
