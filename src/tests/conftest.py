@@ -1,4 +1,5 @@
 import enum
+import os
 from datetime import timezone
 
 import pytest
@@ -9,8 +10,22 @@ from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSONQueryModel, TimestampedModel
 
 
+@pytest.fixture(scope="session")
+def aws_environ():
+    vars = {
+        "AWS_DEFAULT_REGION": "us-east-1"
+    }
+    for k, v in vars.items():
+        os.environ[k] = v
+
+    yield
+
+    for k in vars:
+        del os.environ[k]
+
+
 @pytest.fixture
-def dynamodb():
+def dynamodb(aws_environ):
     with mock_dynamodb():
         yield
 

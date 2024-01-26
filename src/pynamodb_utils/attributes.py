@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import Collection, FrozenSet, Union
 
@@ -9,6 +10,12 @@ class DynamicMapAttribute(MapAttribute):
     element_type = None
 
     def __init__(self, *args, of=None, **kwargs):
+        if "default" in kwargs:
+            kwargs["default"] = json.dumps(kwargs["default"])
+
+        if "default_for_new" in kwargs:
+            kwargs["default_for_new"] = json.dumps(kwargs["default_for_new"])
+
         if of:
             if not issubclass(of, MapAttribute):
                 raise ValueError("'of' must be subclass of MapAttribute")
@@ -56,20 +63,28 @@ class DynamicMapAttribute(MapAttribute):
 class EnumNumberAttribute(NumberAttribute):
     def __init__(
         self,
-        enum,
+        enum: Enum,
         hash_key=False,
         range_key=False,
         null=None,
-        default=None,
+        default: Enum = None,
+        default_for_new: Enum = None,
         attr_name=None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")
         self.enum = enum
+
+        if default_for_new is not None and not isinstance(default_for_new, enum):
+            raise ValueError(f"default_for_new is not instance of {enum}")
+        if default is not None and not isinstance(default, enum):
+            raise ValueError(f"default is not instance of {enum}")
+
         super().__init__(
             hash_key=hash_key,
             range_key=range_key,
-            default=default,
+            default=default.value if default else None,
+            default_for_new=default_for_new.value if default_for_new else None,
             null=null,
             attr_name=attr_name,
         )
@@ -94,20 +109,28 @@ class EnumNumberAttribute(NumberAttribute):
 class EnumUnicodeAttribute(UnicodeAttribute):
     def __init__(
         self,
+        enum: Enum,
         hash_key=False,
         range_key=False,
         null=None,
-        default=None,
+        default: Enum = None,
+        default_for_new: Enum = None,
         attr_name=None,
-        enum=None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")
         self.enum = enum
+
+        if default_for_new is not None and not isinstance(default_for_new, enum):
+            raise ValueError(f"default_for_new is not instance of {enum}")
+        if default is not None and not isinstance(default, enum):
+            raise ValueError(f"default is not instance of {enum}")
+
         super().__init__(
             hash_key=hash_key,
             range_key=range_key,
-            default=default,
+            default=default.value if default else None,
+            default_for_new=default_for_new.value if default_for_new else None,
             null=null,
             attr_name=attr_name,
         )
