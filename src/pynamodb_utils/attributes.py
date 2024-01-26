@@ -53,9 +53,6 @@ class DynamicMapAttribute(MapAttribute):
     def items(self) -> Collection:
         return self.as_dict().items()
 
-    def __repr__(self) -> dict:
-        return self.as_dict()
-
     def __str__(self) -> str:
         return str(self.__class__)
 
