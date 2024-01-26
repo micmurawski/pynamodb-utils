@@ -53,12 +53,14 @@ def pick_index_keys(
     return keys
 
 
-def parse_attr(attr: Attribute) -> Union[Dict, datetime]:
+def parse_attr(attr: Attribute) -> Union[Attribute, Dict, List, datetime]:
     """
     Function parses attribute to corresponding values
     """
     if isinstance(attr, DynamicMapAttribute):
         return attr.as_dict()
+    elif isinstance(attr, List):
+        return [self.parse_attr(el) for el in attr]
     elif isinstance(attr, MapAttribute):
         return parse_attrs_to_dict(attr)
     elif isinstance(attr, datetime):
