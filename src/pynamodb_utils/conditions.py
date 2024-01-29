@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, List, Set, Optional
 
 from pynamodb.attributes import Attribute
 from pynamodb.expressions.condition import Condition
@@ -17,8 +17,8 @@ def create_model_condition(
     args: Dict[str, Any],
     _operator: Callable = operator.and_,
     raise_exception: bool = True,
-    unavailable_attributes: List[str] = []
-) -> Condition:
+    unavailable_attributes: Optional[List[str]] = None
+) -> Optional[Condition]:
     """
         Function creates pynamodb conditions based on input dictionary (args)
         Parameters:
@@ -34,7 +34,7 @@ def create_model_condition(
 
     available_attributes: Set[str] = get_available_attributes_list(
         model=model,
-        unavaiable_attrs=unavailable_attributes
+        unavailable_attrs=unavailable_attributes
     )
 
     key: str

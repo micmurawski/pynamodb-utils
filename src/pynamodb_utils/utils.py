@@ -6,6 +6,7 @@ from pynamodb.indexes import GlobalSecondaryIndex, LocalSecondaryIndex
 from pynamodb.models import Model
 
 from pynamodb_utils.attributes import DynamicMapAttribute
+from pynamodb_utils.exceptions import IndexNotFoundError
 
 NoneType = type(None)
 
@@ -31,7 +32,7 @@ def create_index_map(
                 ).get("AttributeName")
                 idx_map[(hash_key, range_key)] = getattr(model, k)
         except StopIteration as e:
-            raise Exception("Could not find index keys") from e
+            raise IndexNotFoundError("Could not find index keys") from e
 
     return idx_map
 
@@ -53,7 +54,7 @@ def pick_index_keys(
     return keys
 
 
-def parse_attr(attr: Attribute) -> Union[Attribute, Dict, List, datetime]:
+def parse_attr(attr: Attribute) -> Union[Attribute, Dict, List, datetime, str]:
     """
     Function parses attribute to corresponding values
     """
@@ -87,12 +88,12 @@ def get_attributes_list(model: Model, depth: int = 0) -> List[str]:
     return attrs
 
 
-def get_available_attributes_list(model: Model, unavaiable_attrs: List[str] = []) -> Set[str]:
+def get_available_attributes_list(model: Model, unavailable_attrs: Optional[List[str]] = None) -> List[str]:
     attrs: List[str] = get_attributes_list(model)
-    return [attr for attr in attrs if attr not in unavaiable_attrs]
+    return sorted(set(attr for attr in attrs if attr not in unavailable_attrs))
 
 
-def get_attribute(model: Model, attr_string: str) -> Attribute:
+def get_attribute(model: Model, attr_string: str) -> Optional[Attribute]:
     """
     Function gets nested attribute based on path (attr_string)
     """
@@ -108,5 +109,5 @@ def get_attribute(model: Model, attr_string: str) -> Attribute:
     return result
 
 
-def get_timestamp(tzinfo: timezone = None) -> datetime:
-    return datetime.now(tzinfo or timezone.utc)
+def get_timestamp(tz: timezone = None) -> datetime:
+    return datetime.now(tz or timezone.utc)

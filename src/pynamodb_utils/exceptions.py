@@ -10,3 +10,9 @@ class FilterError(Error):
 
 class SerializerError(Error):
     pass
+
+
+class IndexNotFoundError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)

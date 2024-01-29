@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Collection, FrozenSet, Union
+from typing import Collection, FrozenSet, Union, Optional
 
 import six
+from pynamodb.constants import NUMBER
 from pynamodb.attributes import MapAttribute, NumberAttribute, UnicodeAttribute
 
 
@@ -54,14 +55,16 @@ class DynamicMapAttribute(MapAttribute):
 
 
 class EnumNumberAttribute(NumberAttribute):
+    attr_type = NUMBER
+
     def __init__(
         self,
         enum,
-        hash_key=False,
-        range_key=False,
-        null=None,
-        default=None,
-        attr_name=None,
+        hash_key: bool = False,
+        range_key: bool = False,
+        null: Optional[bool] = None,
+        default: Optional[Enum] = None,
+        attr_name: Optional[str] = None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")
@@ -69,7 +72,7 @@ class EnumNumberAttribute(NumberAttribute):
         super().__init__(
             hash_key=hash_key,
             range_key=range_key,
-            default=default,
+            default=default.value if default else None,
             null=null,
             attr_name=attr_name,
         )
@@ -93,13 +96,13 @@ class EnumNumberAttribute(NumberAttribute):
 
 class EnumUnicodeAttribute(UnicodeAttribute):
     def __init__(
-        self,
-        hash_key=False,
-        range_key=False,
-        null=None,
-        default=None,
-        attr_name=None,
-        enum=None,
+            self,
+            hash_key=False,
+            range_key=False,
+            null=None,
+            default=None,
+            attr_name=None,
+            enum=None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")

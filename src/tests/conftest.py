@@ -34,7 +34,7 @@ def post_table(dynamodb):
         sub_name = UnicodeAttribute(range_key=True)
         category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
         content = UnicodeAttribute()
-        tags = DynamicMapAttribute(default={})
+        tags = DynamicMapAttribute(default=None)
         category_created_at_gsi = PostCategoryCreatedAtGSI()
         secret_parameter = UnicodeAttribute(default="secret")
 

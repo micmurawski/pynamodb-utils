@@ -8,14 +8,14 @@ from pynamodb_utils.exceptions import SerializerError
 
 @freeze_time("2019-01-01 00:00:00+00:00")
 def test_general(post_table):
-    Post = post_table
-    CategoryEnum = Post.category.enum
+    post = post_table
+    category_enum = post.category.enum
 
-    post = Post(
+    post = post(
         name="A weekly news.",
         sub_name="Shocking revelations",
         content="Last week took place...",
-        category=CategoryEnum.finance,
+        category=category_enum.finance,
         tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
     )
     post.save()
@@ -26,7 +26,7 @@ def test_general(post_table):
         "OR": {"tags.type__equals": "news", "tags.topics__contains": ["NYSE"]},
     }
 
-    results = Post.make_index_query(query)
+    results = post.make_index_query(query)
 
     expected = {
         "content": "Last week took place...",
@@ -43,26 +43,26 @@ def test_general(post_table):
 
 
 def test_bad_field(post_table):
-    Post = post_table
-    CategoryEnum = Post.category.enum
+    post = post_table
+    category_enum = post.category.enum
 
-    post = Post(
+    post = post(
         name="A weekly news.",
         sub_name="Shocking revelations",
         content="Last week took place...",
-        category=CategoryEnum.finance,
+        category=category_enum.finance,
         tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
     )
     post.save()
 
-    with pytest.raises(SerializerError) as e:
-        Post.get_conditions_from_json(query={"tag.type__equals": "news"})
-        assert e.message == {
-                "Query": {
-                    "tag.type": [
-                        "Parameter tag does not exist. Choose some of "
-                        "available: category, content, created_at, deleted_at, "
-                        "name, sub_name, tags, updated_at"
-                    ]
-                }
+    with pytest.raises(SerializerError) as exc_info:
+        post.get_conditions_from_json(query={"tag.type__equals": "news"})
+    assert exc_info.value.message == {
+            "Query": {
+                "tag.type": [
+                    "Parameter tag.type does not exist. Choose some of "
+                    "available: category, content, created_at, deleted_at, "
+                    "name, sub_name, tags, tags.*, updated_at"
+                ]
             }
+        }
