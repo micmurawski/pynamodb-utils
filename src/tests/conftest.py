@@ -2,7 +2,7 @@ import enum
 from datetime import timezone
 
 import pytest
-from moto import mock_dynamodb
+from moto import mock_aws
 from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute
 from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 
@@ -11,7 +11,7 @@ from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSON
 
 @pytest.fixture
 def dynamodb():
-    with mock_dynamodb():
+    with mock_aws():
         yield
 
 
