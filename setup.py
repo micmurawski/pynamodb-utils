@@ -27,7 +27,7 @@ setup(
             'tests',
         )
     ),
-    install_requires=["pynamodb>=5.0.0"],
+    install_requires=["pynamodb>=5.0.0,<6.0.0"],
     include_package_data=True,
     python_requires=">=3.6",
     license="MIT",
