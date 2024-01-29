@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from typing import Any, Callable, Dict, List, Set, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from pynamodb.attributes import Attribute
 from pynamodb.expressions.condition import Condition
@@ -12,12 +12,29 @@ from pynamodb_utils.parsers import OPERATORS_MAPPING
 from pynamodb_utils.utils import get_attribute, get_available_attributes_list
 
 
+def _is_available(field_path: str, available_attributes: List, raise_exception: bool):
+    if "." in field_path:
+        _field_path = field_path.split(".", 1)[0] + ".*"
+        is_available = _field_path in available_attributes
+    else:
+        is_available = field_path in available_attributes
+    if not is_available and raise_exception:
+        raise FilterError(
+            message={
+                field_path: [
+                    f"Parameter {field_path} does not exist."
+                    f" Choose some of available: {', '.join(available_attributes)}"
+                ]
+            }
+        )
+
+
 def create_model_condition(
-    model: Model,
-    args: Dict[str, Any],
-    _operator: Callable = operator.and_,
-    raise_exception: bool = True,
-    unavailable_attributes: Optional[List[str]] = None
+        model: Model,
+        args: Dict[str, Any],
+        _operator: Callable = operator.and_,
+        raise_exception: bool = True,
+        unavailable_attributes: Optional[List[str]] = None
 ) -> Optional[Condition]:
     """
         Function creates pynamodb conditions based on input dictionary (args)
@@ -31,52 +48,29 @@ def create_model_condition(
                 condition (Condition): computed pynamodb condition
     """
     conditions_list: List[Condition] = []
-
-    available_attributes: Set[str] = get_available_attributes_list(
+    available_attributes: List[str] = get_available_attributes_list(
         model=model,
         unavailable_attrs=unavailable_attributes
     )
-
-    key: str
-    value: Any
     for key, value in args.items():
-        array: List[str] = key.rsplit('__', 1)
+        array: List[str] = key.rsplit("__", 1)
         field_path: str = array[0]
-        operator_name: str = array[1] if len(array) > 1 and array[1] != 'not' else ''
-
-        if "." in field_path:
-            _field_path = field_path.split(".", 1)[0] + ".*"
-            is_available = _field_path in available_attributes
-        else:
-
-            is_available = field_path in available_attributes
-
-        if operator_name.replace('not_', '') not in OPERATORS_MAPPING:
+        operator_name: str = array[1] if len(array) > 1 and array[1] != "not" else ""
+        if operator_name.replace("not_", "") not in OPERATORS_MAPPING:
             raise FilterError(
-                message={key: [f'Operator {operator_name} does not exist.'
-                               f' Choose some of available: {", ".join(OPERATORS_MAPPING.keys())}']}
+                message={key: [f"Operator {operator_name} does not exist."
+                               f" Choose some of available: {', '.join(OPERATORS_MAPPING.keys())}"]}
             )
-        if not is_available and raise_exception:
-            raise FilterError(
-                message={
-                    field_path: [
-                        f"Parameter {field_path} does not exist."
-                        f' Choose some of available: {", ".join(available_attributes)}'
-                    ]
-                }
-            )
-
+        _is_available(field_path, available_attributes, raise_exception)
         attr: Attribute = get_attribute(model, field_path)
-
         if isinstance(attr, (Attribute, Path)):
             if 'not_' in operator_name:
-                operator_name = operator_name.replace('not_', '')
+                operator_name = operator_name.replace("not_", "")
                 operator_handler = OPERATORS_MAPPING[operator_name]
                 conditions_list.append(~operator_handler(model, field_path, attr, value))
             else:
                 operator_handler = OPERATORS_MAPPING[operator_name]
                 conditions_list.append(operator_handler(model, field_path, attr, value))
-    if not conditions_list:
-        return None
-    else:
+    if conditions_list:
         return reduce(_operator, conditions_list)
+    return None

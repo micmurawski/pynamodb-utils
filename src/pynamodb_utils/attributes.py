@@ -1,9 +1,11 @@
 from enum import Enum
-from typing import Collection, FrozenSet, Union, Optional
+from typing import Collection, FrozenSet, Optional, Union
 
 import six
-from pynamodb.constants import NUMBER
 from pynamodb.attributes import MapAttribute, NumberAttribute, UnicodeAttribute
+from pynamodb.constants import NUMBER
+
+from pynamodb_utils.exceptions import EnumSerializationException
 
 
 class DynamicMapAttribute(MapAttribute):
@@ -88,7 +90,7 @@ class EnumNumberAttribute(NumberAttribute):
                 f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
             )
         except TypeError as e:
-            raise Exception(value, self.enum) from e
+            raise EnumSerializationException(f"Error serializing {value} with enum {self.enum}") from e
 
     def deserialize(self, value: str) -> str:
         return self.enum(int(value)).name
@@ -118,9 +120,8 @@ class EnumUnicodeAttribute(UnicodeAttribute):
     def serialize(self, value: Union[Enum, str]) -> str:
         if isinstance(value, self.enum):
             return str(value.value)
-        elif isinstance(value, str):
-            if value in self.enum.__members__.keys():
-                return getattr(self.enum, value).value
+        elif isinstance(value, str) and value in self.enum.__members__.keys():
+            return getattr(self.enum, value).value
         raise ValueError(
             f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
         )
