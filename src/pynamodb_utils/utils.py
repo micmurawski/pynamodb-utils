@@ -60,7 +60,7 @@ def parse_attr(attr: Attribute) -> Union[Attribute, Dict, List, datetime]:
     if isinstance(attr, DynamicMapAttribute):
         return attr.as_dict()
     elif isinstance(attr, List):
-        return [self.parse_attr(el) for el in attr]
+        return [parse_attr(el) for el in attr]
     elif isinstance(attr, MapAttribute):
         return parse_attrs_to_dict(attr)
     elif isinstance(attr, datetime):
