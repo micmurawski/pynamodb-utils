@@ -98,13 +98,13 @@ class EnumNumberAttribute(NumberAttribute):
 
 class EnumUnicodeAttribute(UnicodeAttribute):
     def __init__(
-            self,
-            hash_key=False,
-            range_key=False,
-            null=None,
-            default=None,
-            attr_name=None,
-            enum=None,
+        self,
+        enum,
+        hash_key: bool = False,
+        range_key: bool = False,
+        null: Optional[bool] = None,
+        default: Optional[Enum] = None,
+        attr_name: Optional[str] = None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")

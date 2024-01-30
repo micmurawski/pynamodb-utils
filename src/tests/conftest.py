@@ -1,4 +1,5 @@
 import enum
+import os
 from datetime import timezone
 
 import pytest
@@ -10,13 +11,22 @@ from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSON
 
 
 @pytest.fixture
-def dynamodb():
+def aws_environ():
+    env_vars = {
+        "AWS_DEFAULT_REGION": "us-east-1"
+    }
     with mock_aws():
+        for k, v in env_vars.items():
+            os.environ[k] = v
+
         yield
+
+        for k in env_vars:
+            del os.environ[k]
 
 
 @pytest.fixture
-def post_table(dynamodb):
+def post_table(aws_environ):
     class CategoryEnum(enum.Enum):
         finance = enum.auto()
         politics = enum.auto()

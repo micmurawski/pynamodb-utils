@@ -58,11 +58,11 @@ def test_bad_field(post_table):
     with pytest.raises(SerializerError) as exc_info:
         post.get_conditions_from_json(query={"tag.type__equals": "news"})
     assert exc_info.value.message == {
-            "Query": {
-                "tag.type": [
-                    "Parameter tag.type does not exist. Choose some of "
-                    "available: category, content, created_at, deleted_at, "
-                    "name, sub_name, tags, tags.*, updated_at"
-                ]
-            }
+        "Query": {
+            "tag.type": [
+                "Parameter tag.type does not exist. Choose some of "
+                "available: category, content, created_at, deleted_at, "
+                "name, sub_name, tags, tags.*, updated_at"
+            ]
         }
+    }
