@@ -8,20 +8,20 @@ from pynamodb_utils.serializers import SerializerError
 
 @freeze_time("2019-01-01 00:00:00+00:00")
 def test_enum_query_not_member_of(post_table):
-    Post = post_table
-    CategoryEnum = Post.category.enum
+    post = post_table
+    category_enum = post.category.enum
 
-    post = Post(
+    post = post(
         name="A weekly news.",
         sub_name="Shocking revelations",
         content="Last week took place...",
-        category=CategoryEnum.finance,
+        category=category_enum.finance,
         tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
     )
     post.save()
 
     with pytest.raises(SerializerError) as e:
-        Post.get_conditions_from_json(
+        post.get_conditions_from_json(
             query={
                 "created_at__lte": str(datetime.now()),
                 "sub_name__exists": None,
@@ -30,21 +30,21 @@ def test_enum_query_not_member_of(post_table):
                 "tags.topics__contains": ["NYSE"],
             }
         )
-        assert e.value.message == {
-            "Query": {"category": ["1 is not member of finance, politics."]}
-        }
+    assert e.value.message == {
+        "Query": {"category": ["1 is not member of finance, politics."]}
+    }
 
 
 @freeze_time("2019-01-01 00:00:00+00:00")
 def test_enum_create_not_member_of(post_table):
-    Post = post_table
+    post = post_table
 
     with pytest.raises(ValueError) as e:
-        post = Post(
+        post = post(
             name="A weekly news.",
             content="Last week took place...",
             category=1,
             tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
         )
         post.save()
-        assert str(e.value) == "Value Error: 1 must be in finance, politics"
+    assert str(e.value) == "Value Error: 1 must be in finance, politics"

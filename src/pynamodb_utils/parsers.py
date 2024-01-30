@@ -58,13 +58,13 @@ def default_list_parser(value: List[Any], field_name: str, model: Model) -> List
     raise FilterError(message={field_name: [f"{value} is not valid type of {field_name}."]})
 
 
-def default_dict_parser(value: Dict, field_name: str, *args) -> Dict[Any, Any]:
+def default_dict_parser(value: Dict, field_name: str, *args) -> Union[Dict[Any, Any], str]:
     if isinstance(value, (dict, NoneType)):
         return value
     elif isinstance(value, str):
         try:
             return json.dumps(value, default=str)
-        except (ValueError, json.JSONDecodeError):
+        except ValueError:
             pass
     raise FilterError(
         message={field_name: [f"{value} is not valid type of {field_name}."]}
