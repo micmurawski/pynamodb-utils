@@ -1,8 +1,11 @@
 from enum import Enum
-from typing import Collection, FrozenSet, Union
+from typing import Collection, FrozenSet, Optional, Union
 
 import six
 from pynamodb.attributes import MapAttribute, NumberAttribute, UnicodeAttribute
+from pynamodb.constants import NUMBER
+
+from pynamodb_utils.exceptions import EnumSerializationException
 
 
 class DynamicMapAttribute(MapAttribute):
@@ -54,14 +57,16 @@ class DynamicMapAttribute(MapAttribute):
 
 
 class EnumNumberAttribute(NumberAttribute):
+    attr_type = NUMBER
+
     def __init__(
         self,
         enum,
-        hash_key=False,
-        range_key=False,
-        null=None,
-        default=None,
-        attr_name=None,
+        hash_key: bool = False,
+        range_key: bool = False,
+        null: Optional[bool] = None,
+        default: Optional[Enum] = None,
+        attr_name: Optional[str] = None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")
@@ -69,7 +74,7 @@ class EnumNumberAttribute(NumberAttribute):
         super().__init__(
             hash_key=hash_key,
             range_key=range_key,
-            default=default,
+            default=default.value if default else None,
             null=null,
             attr_name=attr_name,
         )
@@ -85,7 +90,7 @@ class EnumNumberAttribute(NumberAttribute):
                 f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
             )
         except TypeError as e:
-            raise Exception(value, self.enum) from e
+            raise EnumSerializationException(f"Error serializing {value} with enum {self.enum}") from e
 
     def deserialize(self, value: str) -> str:
         return self.enum(int(value)).name
@@ -94,12 +99,12 @@ class EnumNumberAttribute(NumberAttribute):
 class EnumUnicodeAttribute(UnicodeAttribute):
     def __init__(
         self,
-        hash_key=False,
-        range_key=False,
-        null=None,
-        default=None,
-        attr_name=None,
-        enum=None,
+        enum,
+        hash_key: bool = False,
+        range_key: bool = False,
+        null: Optional[bool] = None,
+        default: Optional[Enum] = None,
+        attr_name: Optional[str] = None,
     ):
         if isinstance(enum, Enum):
             raise ValueError("enum must be Enum class")
@@ -115,9 +120,8 @@ class EnumUnicodeAttribute(UnicodeAttribute):
     def serialize(self, value: Union[Enum, str]) -> str:
         if isinstance(value, self.enum):
             return str(value.value)
-        elif isinstance(value, str):
-            if value in self.enum.__members__.keys():
-                return getattr(self.enum, value).value
+        elif isinstance(value, str) and value in self.enum.__members__.keys():
+            return getattr(self.enum, value).value
         raise ValueError(
             f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
         )

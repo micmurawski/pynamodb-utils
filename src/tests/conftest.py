@@ -1,8 +1,9 @@
 import enum
+import os
 from datetime import timezone
 
 import pytest
-from moto import mock_dynamodb
+from moto import mock_aws
 from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute
 from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 
@@ -10,13 +11,22 @@ from pynamodb_utils import AsDictModel, DynamicMapAttribute, EnumAttribute, JSON
 
 
 @pytest.fixture
-def dynamodb():
-    with mock_dynamodb():
+def aws_environ():
+    env_vars = {
+        "AWS_DEFAULT_REGION": "us-east-1"
+    }
+    with mock_aws():
+        for k, v in env_vars.items():
+            os.environ[k] = v
+
         yield
+
+        for k in env_vars:
+            del os.environ[k]
 
 
 @pytest.fixture
-def post_table(dynamodb):
+def post_table(aws_environ):
     class CategoryEnum(enum.Enum):
         finance = enum.auto()
         politics = enum.auto()
@@ -34,7 +44,7 @@ def post_table(dynamodb):
         sub_name = UnicodeAttribute(range_key=True)
         category = EnumAttribute(enum=CategoryEnum, default=CategoryEnum.finance)
         content = UnicodeAttribute()
-        tags = DynamicMapAttribute(default={})
+        tags = DynamicMapAttribute(default=None)
         category_created_at_gsi = PostCategoryCreatedAtGSI()
         secret_parameter = UnicodeAttribute(default="secret")
 

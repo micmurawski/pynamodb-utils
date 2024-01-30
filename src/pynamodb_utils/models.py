@@ -1,5 +1,5 @@
 from datetime import timezone
-from typing import Any, List
+from typing import Any, List, Optional
 
 from pynamodb.attributes import UTCDateTimeAttribute
 from pynamodb.expressions.condition import Condition
@@ -20,12 +20,14 @@ class JSONQueryModel(Model):
 
             Parameters:
                     query (dict): A decimal integer
+                    raise_exception (bool): Throwing an exception in case of an error
 
             Returns:
                     condition (Condition): computed pynamodb condition
         """
         query_unavailable_attributes: List[str] = getattr(cls.Meta, "query_unavailable_attributes", [])
-        return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query, raise_exception=raise_exception)
+        return ConditionsSerializer(cls, query_unavailable_attributes).load(data=query,
+                                                                            raise_exception=raise_exception)
 
     @classmethod
     def make_index_query(cls, query: dict, raise_exception: bool = True, **kwargs) -> ResultIterator[Model]:
@@ -34,6 +36,7 @@ class JSONQueryModel(Model):
 
             Parameters:
                     query (dict): A decimal integer
+                    raise_exception (bool): Throwing an exception in case of an error
 
             Returns:
                     result_iterator (result_iterator): result iterator for optimized query
@@ -69,6 +72,9 @@ class AsDictModel(Model):
                 obj = obj[key]
 
 
+TZ_INFO = "TZINFO"
+
+
 class TimestampedModel(Model):
     created_at = UTCDateTimeAttribute(default=get_timestamp)
     updated_at = UTCDateTimeAttribute(default=get_timestamp)
@@ -77,17 +83,17 @@ class TimestampedModel(Model):
     class Meta:
         abstract = True
 
-    def save(self, condition=None):
-        tz_info = getattr(self.Meta, "TZINFO", None)
+    def save(self, condition: Optional[Condition] = None, *, add_version_condition: bool = True):
+        tz_info = getattr(self.Meta, TZ_INFO, None)
         self.created_at = self.created_at.astimezone(tz=tz_info or timezone.utc)
-        self.updated_at = get_timestamp(tzinfo=tz_info)
-        super().save(condition=condition)
+        self.updated_at = get_timestamp(tz=tz_info)
+        super().save(condition=condition, add_version_condition=add_version_condition)
 
     def save_without_timestamp_update(self, condition=None):
         super().save(condition=condition)
 
     def soft_delete(self, condition=None):
         """ Puts delete_at timestamp """
-        tz_info = getattr(self.Meta, "TZINFO", None)
+        tz_info = getattr(self.Meta, TZ_INFO, None)
         self.deleted_at = get_timestamp(tz_info)
         super().save(condition=condition)
