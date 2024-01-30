@@ -11,14 +11,22 @@ def test_general(post_table):
     post = post_table
     category_enum = post.category.enum
 
-    post = post(
+    post_1 = post(
         name="A weekly news.",
         sub_name="Shocking revelations",
         content="Last week took place...",
         category=category_enum.finance,
         tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
     )
-    post.save()
+    post_1.save()
+    post_2 = post(
+        name="A boring news.",
+        sub_name="Nothing interesting...",
+        content="...",
+        category=category_enum.finance,
+        tags={"type": "not-news", "topics": ["stock exchange", "LSE"]},
+    )
+    post_2.save()
     query = {
         "created_at__lte": str(datetime.now()),
         "sub_name__exists": None,
@@ -26,7 +34,7 @@ def test_general(post_table):
         "OR": {"tags.type__equals": "news", "tags.topics__contains": ["NYSE"]},
     }
 
-    results = post.make_index_query(query)
+    results = list(post.make_index_query(query))
 
     expected = {
         "content": "Last week took place...",
@@ -39,7 +47,8 @@ def test_general(post_table):
         "updated_at": "2019-01-01T00:00:00+00:00",
     }
 
-    assert next(results).as_dict() == expected
+    assert len(results) == 1
+    assert results[0].as_dict() == expected
 
 
 def test_bad_field(post_table):
