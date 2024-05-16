@@ -1,12 +1,20 @@
+from __future__ import annotations
+
 import json
 from enum import Enum
-from typing import Collection, FrozenSet, Optional, Union
+from typing import Any, Callable, Collection, FrozenSet, Optional, Type, TypeVar, Union
 
 import six
-from pynamodb.attributes import MapAttribute, NumberAttribute, UnicodeAttribute
-from pynamodb.constants import NUMBER
+from pynamodb.attributes import Attribute, MapAttribute
+from pynamodb.constants import NUMBER, STRING
 
-from pynamodb_utils.exceptions import EnumSerializationException
+
+T = TypeVar("T", bound=Enum)
+_fail: Any = object()
+
+
+def string_number(x: str) -> str:
+    return str(int(x))
 
 
 class DynamicMapAttribute(MapAttribute):
@@ -60,94 +68,110 @@ class DynamicMapAttribute(MapAttribute):
         return str(self.__class__)
 
 
-class EnumNumberAttribute(NumberAttribute):
+class EnumNumberAttribute(Attribute[T]):
     attr_type = NUMBER
 
     def __init__(
         self,
-        enum: Enum,
-        hash_key: bool = False,
-        range_key: bool = False,
-        null: Optional[bool] = None,
+        enum: Type[Enum],
         default: Optional[Enum] = None,
         default_for_new: Optional[Enum] = None,
-        attr_name: Optional[str] = None,
+        unknown_value: Optional[T] = _fail,
+        **kwargs,
     ):
-        if isinstance(enum, Enum):
+        if not issubclass(enum, Enum):
             raise ValueError("enum must be Enum class")
-        self.enum = enum
 
-        if default_for_new is not None and not isinstance(default_for_new, enum):
-            raise ValueError(f"default_for_new is not instance of {enum}")
-        if default is not None and not isinstance(default, enum):
-            raise ValueError(f"default is not instance of {enum}")
+        self.enum = enum
+        self.unknown_value = unknown_value
+
+        self._default = default
+        self._default_for_new = default_for_new
+
+        if default:
+            def default(): return self._default
+
+        if default_for_new:
+            def default_for_new(): return self._default_for_new
 
         super().__init__(
-            hash_key=hash_key,
-            range_key=range_key,
-            default=default.value if default else None,
-            default_for_new=default_for_new.value if default_for_new else None,
-            null=null,
-            attr_name=attr_name,
+            **kwargs,
+            default=default,
+            default_for_new=default_for_new
         )
 
-    def serialize(self, value: Union[Enum, str]) -> str:
-        try:
-            if isinstance(value, self.enum):
-                return str(value.value)
-            elif isinstance(value, str):
-                if value in self.enum.__members__.keys():
-                    return str(getattr(self.enum, value).value)
-            raise ValueError(
-                f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
+    def serialize(self, value: Union[int, Callable[[], T]]) -> str:  # string number
+        if callable(value):
+            value = value()
+        if isinstance(value, int):
+            return string_number(self.enum(value).value)
+        if isinstance(value, str):
+            return string_number(getattr(self.enum, value).value)
+        if not isinstance(value, self.enum):
+            raise TypeError(
+                f"{value} has invalid type of {type(value)} expected {self.enum}"
             )
-        except TypeError as e:
-            raise EnumSerializationException(f"Error serializing {value} with enum {self.enum}") from e
+        return string_number(value.value)
 
-    def deserialize(self, value: str) -> str:
-        return self.enum(int(value)).name
+    def deserialize(self, value: str) -> Optional[T]:
+        try:
+            return self.enum(int(value))
+        except ValueError as e:
+            if self.unknown_value is _fail:
+                raise ValueError(f"{value} is not present in {self.enum}") from e
+            return self.unknown_value
 
 
-class EnumUnicodeAttribute(UnicodeAttribute):
+class EnumUnicodeAttribute(Attribute[T]):
+    attr_type = STRING
+
     def __init__(
         self,
-        enum: Enum,
-        hash_key: bool = False,
-        range_key: bool = False,
-        null: Optional[bool] = None,
+        enum: Type[Enum],
         default: Optional[Enum] = None,
         default_for_new: Optional[Enum] = None,
-        attr_name: Optional[str] = None,
+        unknown_value: Optional[T] = _fail,
+        **kwargs,
     ):
-        if isinstance(enum, Enum):
+        if not issubclass(enum, Enum):
             raise ValueError("enum must be Enum class")
-        self.enum = enum
 
-        if default_for_new is not None and not isinstance(default_for_new, enum):
-            raise ValueError(f"default_for_new is not instance of {enum}")
-        if default is not None and not isinstance(default, enum):
-            raise ValueError(f"default is not instance of {enum}")
+        self.enum = enum
+        self.unknown_value = unknown_value
+
+        self._default = default
+        self._default_for_new = default_for_new
+
+        if default:
+            def default(): return self._default
+
+        if default_for_new:
+            def default_for_new(): return self._default_for_new
 
         super().__init__(
-            hash_key=hash_key,
-            range_key=range_key,
-            default=default.value if default else None,
-            default_for_new=default_for_new.value if default_for_new else None,
-            null=null,
-            attr_name=attr_name,
+            **kwargs,
+            default=default,
+            default_for_new=default_for_new
         )
 
-    def serialize(self, value: Union[Enum, str]) -> str:
-        if isinstance(value, self.enum):
-            return str(value.value)
-        elif isinstance(value, str) and value in self.enum.__members__.keys():
-            return getattr(self.enum, value).value
-        raise ValueError(
-            f'Value Error: {value} must be in {", ".join([item for item in self.enum.__members__.keys()])}'
-        )
+    def serialize(self, value: Union[str, Callable[[], T]]) -> str:
+        if callable(value):
+            value = value()
+        if isinstance(value, str):
+            return self.enum(value).value
+        if not isinstance(value, self.enum):
+            raise TypeError(
+                f"{value} has invalid type of {type(value)} expected {self.enum}"
+            )
+        return value.value
 
-    def deserialize(self, value: str) -> str:
-        return self.enum(value).name
+    def deserialize(self, value: str) -> Optional[T]:
+        try:
+            return self.enum(value)
+        except ValueError as e:
+            if self.unknown_value is _fail:
+                raise ValueError(f"{value} is not present in {self.enum}") from e
+            return self.unknown_value
 
 
 EnumAttribute = EnumNumberAttribute

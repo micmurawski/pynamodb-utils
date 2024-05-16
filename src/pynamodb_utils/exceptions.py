@@ -14,7 +14,3 @@ class SerializerError(Error):
 
 class IndexNotFoundError(Exception):
     pass
-
-
-class EnumSerializationException(Exception):
-    pass

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pynamodb.attributes import Attribute, MapAttribute
@@ -7,8 +8,6 @@ from pynamodb.models import Model
 
 from pynamodb_utils.attributes import DynamicMapAttribute
 from pynamodb_utils.exceptions import IndexNotFoundError
-
-NoneType = type(None)
 
 
 def create_index_map(
@@ -60,6 +59,8 @@ def parse_attr(attr: Attribute) -> Union[Attribute, Dict, List, datetime, str]:
     """
     if isinstance(attr, DynamicMapAttribute):
         return attr.as_dict()
+    elif isinstance(attr, Enum):
+        return attr.name
     elif isinstance(attr, List):
         return [parse_attr(el) for el in attr]
     elif isinstance(attr, MapAttribute):

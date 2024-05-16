@@ -39,12 +39,12 @@ def test_enum_query_not_member_of(post_table):
 def test_enum_create_not_member_of(post_table):
     post = post_table
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(AttributeError):
         post = post(
             name="A weekly news.",
+            sub_name="subname",
             content="Last week took place...",
-            category=1,
+            category="ABC",
             tags={"type": "news", "topics": ["stock exchange", "NYSE"]},
         )
         post.save()
-    assert str(e.value) == "Value Error: 1 must be in finance, politics"
