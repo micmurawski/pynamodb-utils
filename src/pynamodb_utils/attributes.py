@@ -8,7 +8,6 @@ import six
 from pynamodb.attributes import Attribute, MapAttribute
 from pynamodb.constants import NUMBER, STRING
 
-
 T = TypeVar("T", bound=Enum)
 _fail: Any = object()
 
