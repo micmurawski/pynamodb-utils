@@ -83,10 +83,13 @@ class TimestampedModel(Model):
     class Meta:
         abstract = True
 
-    def save(self, condition: Optional[Condition] = None, *, add_version_condition: bool = True):
+    def update_timestamps(self):
         tz_info = getattr(self.Meta, TZ_INFO, None)
         self.created_at = self.created_at.astimezone(tz=tz_info or timezone.utc)
         self.updated_at = get_timestamp(tz=tz_info)
+
+    def save(self, condition: Optional[Condition] = None, *, add_version_condition: bool = True):
+        self.update_timestamps()
         super().save(condition=condition, add_version_condition=add_version_condition)
 
     def save_without_timestamp_update(self, condition=None):
